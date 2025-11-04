@@ -1,15 +1,18 @@
 import { ReactNode } from 'react'
 import { ProtectedSidebar } from './ProtectedSidebar'
 import { ProtectedHeader } from './ProtectedHeader'
+import { SessionProvider } from 'next-auth/react'
 
 export function ProtectedShell({ children }: { children: ReactNode }) {
 	return (
-		<div className='flex min-h-screen'>
-			<ProtectedSidebar />
-			<div className='flex-1 flex flex-col'>
-				<ProtectedHeader />
-				<main className='flex-1 px-12 pt-6 pb-8'>{children}</main>
+		<SessionProvider>
+			<div className='flex min-h-screen'>
+				<ProtectedSidebar />
+				<div className='flex-1 flex flex-col'>
+					<ProtectedHeader />
+					<main className='flex-1 px-12 pt-6 pb-8'>{children}</main>
+				</div>
 			</div>
-		</div>
+		</SessionProvider>
 	)
 }

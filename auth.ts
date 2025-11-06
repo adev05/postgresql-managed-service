@@ -2,12 +2,12 @@ import NextAuth from 'next-auth'
 import { JWT } from 'next-auth/jwt'
 import Credentials from 'next-auth/providers/credentials'
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || ''
+const API_URL = process.env.API_URL || ''
 
 async function refreshAccessToken(token: JWT) {
 	console.log({ token })
 	try {
-		const res = await fetch(`${BACKEND_URL}/auth/refresh`, {
+		const res = await fetch(`${API_URL}/auth/refresh`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ refresh_token: token.refresh_token }),
@@ -47,7 +47,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 			},
 			authorize: async credentials => {
 				console.log('[AUTH] authorize() called with:', credentials)
-				const res = await fetch(`${BACKEND_URL}/auth/login-telegram`, {
+				const res = await fetch(`${API_URL}/auth/login-telegram`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify(credentials),
@@ -68,8 +68,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 					photo_url: String(credentials.photo_url),
 
 					access_token,
-					refresh_token,
+					token_type,
 					expires_in,
+					refresh_token,
 				}
 
 				console.log('[AUTH] Returning user:', user)
@@ -91,8 +92,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 				token.photo_url = user.photo_url
 
 				token.access_token = user.access_token
-				token.refresh_token = user.refresh_token
+				token.token_type = user.token_type
 				token.expires_at = Date.now() + user.expires_in * 1000
+				token.refresh_token = user.refresh_token
 				return token
 			}
 			if (Date.now() < (token.expires_at as number)) {
@@ -110,7 +112,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 				session.user.photo_url = token.photo_url as string
 			}
 
-			session.access_token = token.access_token as string
+			session.access_token =
+				`${token.token_type} ${token.access_token}` as string
 			return session
 		},
 	},

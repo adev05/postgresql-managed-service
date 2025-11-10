@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Montserrat } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
+import { SessionProvider as NextAuthSessionProvider } from 'next-auth/react'
+import SessionProvider from '@/components/(protected)/SessionProvider'
 
 const montserrat = Montserrat({
 	variable: '--font-montserrat',
@@ -27,7 +29,9 @@ export default function RootLayout({
 					enableSystem
 					disableTransitionOnChange
 				>
-					{children}
+					<NextAuthSessionProvider>
+						<SessionProvider>{children}</SessionProvider>
+					</NextAuthSessionProvider>
 				</ThemeProvider>
 			</body>
 		</html>

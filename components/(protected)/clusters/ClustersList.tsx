@@ -1,6 +1,6 @@
-import CreateClusterDialog from './CreateClusterDialog'
+import CreateClusterDialog from '@/components/(protected)/clusters/CreateClusterDialog'
 import { Cluster } from '@/types/cluster'
-import ClusterCard from './ClusterCard'
+import ClusterCard from '@/components/(protected)/clusters/ClusterCard'
 
 interface ClustersListProps {
 	clusters: Cluster[]

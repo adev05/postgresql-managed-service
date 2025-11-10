@@ -7,7 +7,7 @@ import {
 	EmptyTitle,
 } from '@/components/ui/empty'
 import { CubeIcon } from '@heroicons/react/24/solid'
-import CreateClusterDialog from './CreateClusterDialog'
+import CreateClusterDialog from '@/components/(protected)/clusters/CreateClusterDialog'
 
 export function ClustersEmptyState() {
 	return (

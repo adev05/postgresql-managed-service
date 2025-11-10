@@ -1,11 +1,10 @@
 import NextAuth from 'next-auth'
 import { JWT } from 'next-auth/jwt'
-import Credentials from 'next-auth/providers/credentials'
+import { authConfig } from '@/auth.config'
 
-const API_URL = process.env.API_URL || ''
+const API_URL = process.env.API_URL!
 
-async function refreshAccessToken(token: JWT) {
-	console.log({ token })
+async function refreshAccessToken(token: JWT): Promise<JWT> {
 	try {
 		const res = await fetch(`${API_URL}/auth/refresh`, {
 			method: 'POST',
@@ -13,110 +12,82 @@ async function refreshAccessToken(token: JWT) {
 			body: JSON.stringify({ refresh_token: token.refresh_token }),
 		})
 
-		if (!res.ok) throw new Error('Failed to refresh token')
+		if (!res.ok) {
+			throw new Error(`Failed to refresh token: ${res.status}`)
+		}
 
 		const refreshed = await res.json()
 
-		console.log('[AUTH] Refreshed new token:', refreshed)
+		console.log('[AUTH] Token refreshed successfully')
 
 		return {
 			...token,
 			access_token: refreshed.access_token,
-			refresh_token: refreshed.refresh_token,
+			refresh_token: refreshed.refresh_token ?? token.refresh_token,
 			expires_at: Date.now() + refreshed.expires_in * 1000,
 		}
 	} catch (error) {
 		console.error('[AUTH] Token refresh failed:', error)
-		return { ...token, error: 'RefreshAccessTokenError' }
+
+		return {
+			...token,
+			error: 'RefreshAccessTokenError',
+		}
 	}
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-	providers: [
-		Credentials({
-			id: 'credentials',
-			name: 'Telegram',
-			credentials: {
-				id: { label: 'id', type: 'number' },
-				first_name: { label: 'first_name', type: 'text' },
-				last_name: { label: 'last_name', type: 'text' },
-				username: { label: 'username', type: 'text' },
-				photo_url: { label: 'photo_url', type: 'text' },
-				auth_date: { label: 'auth_date', type: 'date' },
-				hash: { label: 'hash', type: 'text' },
-			},
-			authorize: async credentials => {
-				console.log('[AUTH] authorize() called with:', credentials)
-				const res = await fetch(`${API_URL}/auth/login-telegram`, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify(credentials),
-				})
-
-				if (!res.ok) return null
-
-				const { access_token, token_type, expires_in, refresh_token } =
-					await res.json()
-
-				console.log({ access_token, token_type, expires_in, refresh_token })
-
-				const user = {
-					id: String(credentials.id),
-					first_name: String(credentials.first_name),
-					last_name: String(credentials.last_name),
-					username: String(credentials.username),
-					photo_url: String(credentials.photo_url),
-
-					access_token,
-					token_type,
-					expires_in,
-					refresh_token,
-				}
-
-				console.log('[AUTH] Returning user:', user)
-				return user
-			},
-		}),
-	],
+	...authConfig,
 	session: {
 		strategy: 'jwt',
 		maxAge: 30 * 24 * 60 * 60, // 30 days
 	},
 	callbacks: {
+		...authConfig.callbacks,
 		async jwt({ token, user }) {
+			// Initial sign in
 			if (user) {
-				token.id = user.id
-				token.first_name = user.first_name
-				token.last_name = user.last_name
-				token.username = user.username
-				token.photo_url = user.photo_url
-
-				token.access_token = user.access_token
-				token.token_type = user.token_type
-				token.expires_at = Date.now() + user.expires_in * 1000
-				token.refresh_token = user.refresh_token
-				return token
+				return {
+					...token,
+					id: user.id,
+					first_name: user.first_name,
+					last_name: user.last_name,
+					username: user.username,
+					photo_url: user.photo_url,
+					access_token: user.access_token,
+					token_type: user.token_type,
+					expires_at: Date.now() + user.expires_in * 1000,
+					refresh_token: user.refresh_token,
+				}
 			}
+
+			// Return previous token if the access token has not expired yet
 			if (Date.now() < (token.expires_at as number)) {
 				return token
 			}
 
+			// Access token has expired, try to refresh it
 			return await refreshAccessToken(token)
 		},
 		async session({ session, token }) {
-			if (session.user) {
-				session.user.id = token.id as string
-				session.user.first_name = token.first_name as string
-				session.user.last_name = token.last_name as string
-				session.user.username = token.username as string
-				session.user.photo_url = token.photo_url as string
+			// Handle refresh token error
+			if (token.error === 'RefreshAccessTokenError') {
+				// Force user to re-login
+				session.error = 'RefreshAccessTokenError'
 			}
 
-			session.access_token =
-				`${token.token_type} ${token.access_token}` as string
-			return session
+			return {
+				...session,
+				user: {
+					id: token.id as string,
+					first_name: token.first_name as string,
+					last_name: token.last_name as string,
+					username: token.username as string,
+					photo_url: token.photo_url as string,
+				},
+				access_token: `${token.token_type} ${token.access_token}`,
+			}
 		},
 	},
-	pages: { signIn: '/' },
 	secret: process.env.NEXTAUTH_SECRET,
 })

@@ -1,7 +1,7 @@
 import { auth } from '@/auth'
 import { getClusters } from '@/lib/api'
-import ClustersList from './ClustersList'
-import { ClustersEmptyState } from './ClustersEmptyState'
+import ClustersList from '@/components/(protected)/clusters/ClustersList'
+import { ClustersEmptyState } from '@/components/(protected)/clusters/ClustersEmptyState'
 
 export default async function ClustersContent() {
 	const session = await auth()

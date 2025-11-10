@@ -21,30 +21,36 @@ import {
 	SelectValue,
 } from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
-import {
-	createCluster,
-	CreateClusterPayload,
-} from '@/app/(protected)/clusters/actions'
+import { PlusIcon } from '@heroicons/react/24/solid'
+import { CreateClusterPayload } from '@/types/cluster'
+import { createCluster } from '@/actions/cluster'
 
-const initialForm: CreateClusterPayload = {
+const INITIAL_FORM: CreateClusterPayload = {
 	name: '',
 	pg_version: '16',
 	cpu: 2,
 	ram_mb: 1024,
-	storage_gb: 25,
+	storage_gb: 10,
 }
 
-export default function CreateClusterDialog() {
+const PG_VERSIONS = ['18', '17', '16'] as const
+
+interface CreateClusterDialogProps {
+	variant?: 'positive' | 'secondary'
+}
+
+export default function CreateClusterDialog({
+	variant = 'positive',
+}: CreateClusterDialogProps) {
 	const [open, setOpen] = useState(false)
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
+	const [form, setForm] = useState<CreateClusterPayload>(INITIAL_FORM)
 
-	const [form, setForm] = useState<CreateClusterPayload>(initialForm)
-
-	function update<K extends keyof CreateClusterPayload>(
+	const updateField = <K extends keyof CreateClusterPayload>(
 		key: K,
 		value: CreateClusterPayload[K]
-	) {
+	) => {
 		setForm(prev => ({ ...prev, [key]: value }))
 	}
 
@@ -55,7 +61,7 @@ export default function CreateClusterDialog() {
 		try {
 			await createCluster(form)
 			setOpen(false)
-			setForm(initialForm)
+			setForm(INITIAL_FORM)
 		} catch (err) {
 			setError(
 				err instanceof Error ? err.message : 'Ошибка при создании кластера'
@@ -65,41 +71,62 @@ export default function CreateClusterDialog() {
 		}
 	}
 
+	const handleOpenChange = (newOpen: boolean) => {
+		if (!loading) {
+			setOpen(newOpen)
+			if (!newOpen) {
+				setError(null)
+			}
+		}
+	}
+
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
+		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogTrigger asChild>
-				<Button variant='positive'>Создать кластер</Button>
+				<Button variant={variant} className='h-full'>
+					{variant === 'positive' ? (
+						'Создать кластер'
+					) : (
+						<PlusIcon
+							width={24}
+							height={24}
+							className='text-muted-foreground'
+						/>
+					)}
+				</Button>
 			</DialogTrigger>
 			<DialogContent className='sm:max-w-[600px]'>
 				<DialogHeader>
 					<DialogTitle>Создание PostgreSQL кластера</DialogTitle>
 					<DialogDescription>
-						Заполни параметры и нажми «Создать».
+						Заполните параметры и нажмите «Создать».
 					</DialogDescription>
 				</DialogHeader>
 				<form onSubmit={handleSubmit} className='grid gap-4 py-4'>
-					<div className='space-y-4'>
+					<div className='space-y-2'>
 						<Label htmlFor='name'>Название кластера</Label>
 						<Input
 							id='name'
 							value={form.name}
-							onChange={e => update('name', e.target.value)}
+							onChange={e => updateField('name', e.target.value)}
 							required
 							placeholder='my-cluster'
+							disabled={loading}
 						/>
 					</div>
 
-					<div className='space-y-4'>
+					<div className='space-y-2'>
 						<Label htmlFor='pg_version'>Версия PostgreSQL</Label>
 						<Select
-							onValueChange={v => update('pg_version', v)}
+							onValueChange={v => updateField('pg_version', v)}
 							defaultValue={form.pg_version}
+							disabled={loading}
 						>
 							<SelectTrigger id='pg_version' className='w-full'>
 								<SelectValue placeholder='Выберите версию' />
 							</SelectTrigger>
 							<SelectContent>
-								{['18', '17', '16'].map(v => (
+								{PG_VERSIONS.map(v => (
 									<SelectItem key={v} value={v}>
 										{v}
 									</SelectItem>
@@ -108,7 +135,7 @@ export default function CreateClusterDialog() {
 						</Select>
 					</div>
 
-					<div className='space-y-4'>
+					<div className='space-y-2'>
 						<Label htmlFor='cpu'>CPU: {form.cpu}</Label>
 						<Slider
 							id='cpu'
@@ -116,11 +143,12 @@ export default function CreateClusterDialog() {
 							min={2}
 							max={16}
 							step={1}
-							onValueChange={val => update('cpu', val[0])}
+							onValueChange={val => updateField('cpu', val[0])}
+							disabled={loading}
 						/>
 					</div>
 
-					<div className='space-y-4'>
+					<div className='space-y-2'>
 						<Label htmlFor='ram_mb'>RAM (MB): {form.ram_mb}</Label>
 						<Slider
 							id='ram_mb'
@@ -128,19 +156,21 @@ export default function CreateClusterDialog() {
 							min={1024}
 							max={32768}
 							step={1024}
-							onValueChange={val => update('ram_mb', val[0])}
+							onValueChange={val => updateField('ram_mb', val[0])}
+							disabled={loading}
 						/>
 					</div>
 
-					<div className='space-y-4'>
+					<div className='space-y-2'>
 						<Label htmlFor='storage_gb'>Storage (GB): {form.storage_gb}</Label>
 						<Slider
 							id='storage_gb'
 							value={[form.storage_gb]}
-							min={25}
+							min={10}
 							max={512}
 							step={1}
-							onValueChange={val => update('storage_gb', val[0])}
+							onValueChange={val => updateField('storage_gb', val[0])}
+							disabled={loading}
 						/>
 					</div>
 
@@ -153,7 +183,8 @@ export default function CreateClusterDialog() {
 						<Button
 							variant='secondary'
 							type='button'
-							onClick={() => setOpen(false)}
+							onClick={() => handleOpenChange(false)}
+							disabled={loading}
 						>
 							Отмена
 						</Button>

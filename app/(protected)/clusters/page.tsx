@@ -1,23 +1,17 @@
-import { auth } from '@/auth'
-import { ClustersEmptyState } from '@/components/(protected)/clusters/ClustersEmptyState'
-import ClustersList from '@/components/(protected)/clusters/ClustersList'
+import { Suspense } from 'react'
 import { TypographyH1 } from '@/components/ui/TypographyH1'
 import { TypographyH3 } from '@/components/ui/TypographyH3'
-import { getClusters } from '@/lib/api'
+import ClustersSkeleton from '@/components/(protected)/clusters/ClustersSkeleton'
+import ClustersContent from '@/components/(protected)/clusters/ClustersContent'
 
-export default async function Clusters() {
-	const session = await auth()
-	const clusters = await getClusters(session?.access_token || '')
-
+export default function ClustersPage() {
 	return (
 		<main>
 			<TypographyH1>Кластеры PostgreSQL</TypographyH1>
 			<TypographyH3>Доступные кластеры</TypographyH3>
-			{clusters.length > 0 ? (
-				<ClustersList clusters={clusters} />
-			) : (
-				<ClustersEmptyState />
-			)}
+			<Suspense fallback={<ClustersSkeleton />}>
+				<ClustersContent />
+			</Suspense>
 		</main>
 	)
 }

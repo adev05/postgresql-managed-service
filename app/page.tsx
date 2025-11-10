@@ -1,9 +1,10 @@
-import Header from '@/components/layout/Header'
+// import Header from '@/components/layout/Header'
+import { PublicHeader } from '@/components/public/PublicHeader'
 
 export default function Home() {
 	return (
 		<>
-			<Header />
+			<PublicHeader />
 			<main>main</main>
 		</>
 	)

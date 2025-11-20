@@ -21,7 +21,7 @@ import {
 	SelectValue,
 } from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
-import { CreateClusterPayload } from '@/types/cluster'
+import { Cluster, ClusterResponse, CreateClusterPayload } from '@/types/cluster'
 import { createCluster } from '@/actions/cluster'
 
 const INITIAL_FORM: CreateClusterPayload = {
@@ -34,7 +34,13 @@ const INITIAL_FORM: CreateClusterPayload = {
 
 const PG_VERSIONS = ['18', '17', '16'] as const
 
-export default function CreateClusterDialog() {
+interface CreateClusterDialogProps {
+	onClusterCreated?: (cluster: ClusterResponse) => void
+}
+
+export default function CreateClusterDialog({
+	onClusterCreated,
+}: CreateClusterDialogProps) {
 	const [open, setOpen] = useState(false)
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
@@ -52,9 +58,19 @@ export default function CreateClusterDialog() {
 		setLoading(true)
 		setError(null)
 		try {
-			await createCluster(form)
+			const newCluster = await createCluster(form)
 			setOpen(false)
 			setForm(INITIAL_FORM)
+
+			if (onClusterCreated) {
+				// toast.success('Кластер успешно создан!', {
+				// 	action: {
+				// 		label: 'Открыть',
+				// 		onClick: () => router.push(`/clusters/${newCluster.id}`),
+				// 	},
+				// })
+				onClusterCreated(newCluster)
+			}
 		} catch (err) {
 			setError(
 				err instanceof Error ? err.message : 'Ошибка при создании кластера'
@@ -76,7 +92,7 @@ export default function CreateClusterDialog() {
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogTrigger asChild>
-				<Button variant='positive' className='h-full'>
+				<Button variant='outline' className='h-full'>
 					Создать кластер
 				</Button>
 			</DialogTrigger>

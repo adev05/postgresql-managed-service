@@ -1,9 +1,9 @@
-// 'use client'
+'use client'
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { UserAvatar } from '@/components/ui/UserAvatar'
+
 import {
 	Sidebar,
 	SidebarContent,
@@ -14,14 +14,15 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
-	SidebarSeparator,
 } from '../ui/sidebar'
 import {
-	Boxes,
+	Database,
 	ChevronsUpDownIcon,
 	House,
 	LogOutIcon,
 	MessageCircleQuestionMark,
+	Search,
+	Settings,
 	UserRound,
 } from 'lucide-react'
 import {
@@ -36,25 +37,39 @@ import {
 import { handleSignOut } from '@/app/actions/auth'
 import { Spinner } from '../ui/spinner'
 import { Avatar, AvatarFallback } from '../ui/avatar'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
+import { Logotype } from '../ui/logotype'
 
-const items = [
-	{
-		title: 'Главная',
-		url: '/dashboard',
-		icon: House,
-	},
-	{
-		title: 'Кластеры PostgreSQL',
-		url: '/clusters',
-		icon: Boxes,
-	},
-	{
-		title: 'Центр поддержки',
-		url: '/help',
-		icon: MessageCircleQuestionMark,
-	},
-]
+const data = {
+	navMain: [
+		{
+			title: 'Главная',
+			url: '/dashboard',
+			icon: House,
+		},
+		{
+			title: 'Кластеры PostgreSQL',
+			url: '/clusters',
+			icon: Database,
+		},
+	],
+	navSecondary: [
+		{
+			title: 'Настройки',
+			url: '/settings',
+			icon: Settings,
+		},
+		{
+			title: 'Центр поддержки',
+			url: '/help',
+			icon: MessageCircleQuestionMark,
+		},
+		{
+			title: 'Поиск',
+			url: '/search',
+			icon: Search,
+		},
+	],
+}
 
 export function ProtectedSidebar() {
 	const pathname = usePathname()
@@ -73,8 +88,57 @@ export function ProtectedSidebar() {
 	}
 
 	return (
-		<Sidebar collapsible='icon'>
+		<Sidebar collapsible='offcanvas' variant='inset'>
 			<SidebarHeader>
+				<SidebarGroup>
+					<SidebarMenuButton asChild>
+						<Logotype />
+					</SidebarMenuButton>
+				</SidebarGroup>
+			</SidebarHeader>
+			<SidebarContent>
+				<SidebarGroup>
+					<SidebarGroupContent>
+						<SidebarMenu>
+							{data.navMain.map(item => (
+								<SidebarMenuItem key={item.title}>
+									<SidebarMenuButton
+										isActive={pathname === item.url}
+										asChild
+										size='md'
+									>
+										<Link href={item.url}>
+											<item.icon />
+											<span>{item.title}</span>
+										</Link>
+									</SidebarMenuButton>
+								</SidebarMenuItem>
+							))}
+						</SidebarMenu>
+					</SidebarGroupContent>
+				</SidebarGroup>
+				<SidebarGroup className='mt-auto'>
+					<SidebarGroupContent>
+						<SidebarMenu>
+							{data.navSecondary.map(item => (
+								<SidebarMenuItem key={item.title}>
+									<SidebarMenuButton
+										isActive={pathname === item.url}
+										asChild
+										size='md'
+									>
+										<Link href={item.url}>
+											<item.icon />
+											<span>{item.title}</span>
+										</Link>
+									</SidebarMenuButton>
+								</SidebarMenuItem>
+							))}
+						</SidebarMenu>
+					</SidebarGroupContent>
+				</SidebarGroup>
+			</SidebarContent>
+			<SidebarFooter>
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
 						<SidebarMenuButton
@@ -116,37 +180,7 @@ export function ProtectedSidebar() {
 						</DropdownMenuGroup>
 					</DropdownMenuContent>
 				</DropdownMenu>
-			</SidebarHeader>
-			<SidebarContent>
-				<SidebarGroup>
-					<SidebarGroupContent>
-						<SidebarMenu>
-							{items.map(item => (
-								<SidebarMenuItem key={item.title}>
-									<Tooltip>
-										<TooltipTrigger asChild>
-											<SidebarMenuButton
-												isActive={pathname === item.url}
-												asChild
-												size='md'
-											>
-												<Link href={item.url}>
-													<item.icon />
-													<span>{item.title}</span>
-												</Link>
-											</SidebarMenuButton>
-										</TooltipTrigger>
-										<TooltipContent side='right'>
-											<p>{item.title}</p>
-										</TooltipContent>
-									</Tooltip>
-								</SidebarMenuItem>
-							))}
-						</SidebarMenu>
-					</SidebarGroupContent>
-				</SidebarGroup>
-			</SidebarContent>
-			<SidebarFooter />
+			</SidebarFooter>
 		</Sidebar>
 	)
 }

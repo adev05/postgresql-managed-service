@@ -3,6 +3,7 @@ import CreateClusterDialog from '@/components/(protected)/clusters/CreateCluster
 import ClustersControls from '@/components/(protected)/clusters/ClustersControls'
 import { auth } from '@/auth'
 import { getClusters } from '@/lib/api'
+import ClustersDataTable from '@/components/(protected)/clusters/ClustersDataTable'
 
 export default async function ClustersPage() {
 	// Загружаем данные на сервере
@@ -10,23 +11,33 @@ export default async function ClustersPage() {
 	const accessToken = session?.access_token || ''
 
 	const initialClusters = await getClusters(accessToken, {
-		limit: 8,
+		limit: 10,
 		offset: 0,
 	})
 
 	return (
-		<main>
-			<div className='flex items-center justify-between mb-8 gap-4'>
-				<TypographyH1>Кластеры PostgreSQL</TypographyH1>
-				<CreateClusterDialog />
-			</div>
+		<section className='px-4 lg:px-6'>
+			{/* <ClustersControls
+				initialClusters={initialClusters}
+				accessToken={accessToken}
+			/> */}
+			<ClustersDataTable
+				initialClusters={initialClusters}
+				accessToken={accessToken}
+			/>
+		</section>
+		// <main>
+		// 	{/* <div className='flex items-center justify-between mb-8 gap-4'>
+		// 		<TypographyH1>Кластеры PostgreSQL</TypographyH1>
+		// 		<CreateClusterDialog />
+		// 	</div> */}
 
-			<section>
-				<ClustersControls
-					initialClusters={initialClusters}
-					accessToken={accessToken}
-				/>
-			</section>
-		</main>
+		// 	<section>
+		// 		<ClustersControls
+		// 			initialClusters={initialClusters}
+		// 			accessToken={accessToken}
+		// 		/>
+		// 	</section>
+		// </main>
 	)
 }

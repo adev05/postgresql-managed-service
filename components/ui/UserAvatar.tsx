@@ -1,12 +1,10 @@
 'use client'
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { UserCircleIcon } from '@heroicons/react/24/solid'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
+import { UserRound } from 'lucide-react'
 
 interface UserAvatarProps {
-	src?: string
-	alt: string
 	size?: 'sm' | 'md' | 'lg'
 	className?: string
 }
@@ -18,22 +16,16 @@ const sizeClasses = {
 }
 
 const iconSizeClasses = {
-	sm: 'w-5 h-5',
-	md: 'w-7 h-7',
-	lg: 'w-10 h-10',
+	sm: 'w-4 h-4',
+	md: 'w-6 h-6',
+	lg: 'w-8 h-8',
 }
 
-export function UserAvatar({
-	src,
-	alt,
-	size = 'md',
-	className,
-}: UserAvatarProps) {
+export function UserAvatar({ size = 'md', className }: UserAvatarProps) {
 	return (
 		<Avatar className={cn(sizeClasses[size], className)}>
-			<AvatarImage src={src} alt={alt} className='object-cover' />
-			<AvatarFallback className='bg-muted-foreground/10'>
-				<UserCircleIcon
+			<AvatarFallback className='bg-muted'>
+				<UserRound
 					className={cn(iconSizeClasses[size], 'text-muted-foreground')}
 				/>
 			</AvatarFallback>

@@ -1,80 +1,152 @@
-'use client'
+// 'use client'
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { cn } from '@/lib/utils'
-import { Separator } from '@/components/ui/separator'
-import {
-	ChevronRightIcon,
-	CubeIcon,
-	HomeIcon,
-	QuestionMarkCircleIcon,
-	UserCircleIcon,
-} from '@heroicons/react/24/solid'
 import { UserAvatar } from '@/components/ui/UserAvatar'
+import {
+	Sidebar,
+	SidebarContent,
+	SidebarFooter,
+	SidebarGroup,
+	SidebarGroupContent,
+	SidebarHeader,
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem,
+	SidebarSeparator,
+} from '../ui/sidebar'
+import {
+	Boxes,
+	ChevronsUpDownIcon,
+	House,
+	LogOutIcon,
+	MessageCircleQuestionMark,
+	UserRound,
+} from 'lucide-react'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuGroup,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from '../ui/dropdown-menu'
+import { handleSignOut } from '@/app/actions/auth'
+import { Spinner } from '../ui/spinner'
+import { Avatar, AvatarFallback } from '../ui/avatar'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 
-const links = [
-	{ href: '/dashboard', label: 'Главная', icon: HomeIcon },
-	{ href: '/clusters', label: 'Кластеры PostgreSQL', icon: CubeIcon },
-	{ href: '/help', label: 'Центр поддержки', icon: QuestionMarkCircleIcon },
+const items = [
+	{
+		title: 'Главная',
+		url: '/dashboard',
+		icon: House,
+	},
+	{
+		title: 'Кластеры PostgreSQL',
+		url: '/clusters',
+		icon: Boxes,
+	},
+	{
+		title: 'Центр поддержки',
+		url: '/help',
+		icon: MessageCircleQuestionMark,
+	},
 ]
 
 export function ProtectedSidebar() {
 	const pathname = usePathname()
-	const { data: session } = useSession()
+	const { data: session, status } = useSession()
 
 	const user = session?.user
 
-	return (
-		<aside className='w-[280px] bg-muted border-r flex flex-col'>
-			<Link
-				href='/profile'
-				className='p-4 flex items-center gap-3 cursor-pointer group hover:bg-muted-foreground/5 transition-colors'
-			>
-				{user?.photo_url ? (
-					<UserAvatar src={user.photo_url} alt={user.first_name} size='md' />
-				) : (
-					<div className='w-11 h-11 rounded-full bg-muted-foreground/10 flex items-center justify-center'>
-						<UserCircleIcon className='w-7 h-7 text-muted-foreground' />
-					</div>
-				)}
-
-				<div className='flex-1 min-w-0'>
-					<p className='text-base leading-[22px] mb-1 font-medium truncate'>
-						{user?.first_name} {user?.last_name}
-					</p>
-					{user?.username && (
-						<p className='text-muted-foreground text-xs leading-4 font-medium truncate'>
-							@{user.username}
-						</p>
-					)}
+	if (status === 'loading') {
+		return (
+			<Sidebar>
+				<div className='flex items-center justify-center h-full'>
+					<Spinner />
 				</div>
-				<ChevronRightIcon
-					width={24}
-					height={24}
-					className='transition-transform duration-200 group-hover:translate-x-1 text-muted-foreground shrink-0'
-				/>
-			</Link>
-			<Separator />
-			<nav className='flex flex-col gap-2 p-4'>
-				{links.map(({ href, label, icon: Icon }) => {
-					const active = pathname === href
-					return (
-						<Link
-							key={href}
-							href={href}
-							className={cn(
-								'flex items-center gap-2 p-2 rounded-2xl transition-colors hover:bg-muted-foreground/5',
-								active && 'bg-muted-foreground/10 font-medium'
-							)}
+			</Sidebar>
+		)
+	}
+
+	return (
+		<Sidebar collapsible='icon'>
+			<SidebarHeader>
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<SidebarMenuButton
+							size='lg'
+							className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
 						>
-							<Icon width={24} height={24} className='text-muted-foreground' />
-							{label}
-						</Link>
-					)
-				})}
-			</nav>
-		</aside>
+							<Avatar>
+								<AvatarFallback className='bg-muted'>
+									<UserRound className='text-muted-foreground size-4' />
+								</AvatarFallback>
+							</Avatar>
+							<div className='grid flex-1 text-left text-sm leading-tight'>
+								<span className='truncate font-medium'>{`${user?.first_name} ${user?.last_name}`}</span>
+								<span className='truncate text-xs'>{`@${user?.username}`}</span>
+							</div>
+							<ChevronsUpDownIcon className='ml-auto size-4' />
+						</SidebarMenuButton>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent side='right' align='start'>
+						<DropdownMenuLabel className='p-0 font-normal'>
+							<div className='flex items-center gap-2 px-1 py-1.5 text-left text-sm'>
+								<Avatar>
+									<AvatarFallback className='bg-muted'>
+										<UserRound className='text-muted-foreground  size-4' />
+									</AvatarFallback>
+								</Avatar>
+								<div className='grid flex-1 text-left text-sm leading-tight'>
+									<span className='truncate font-medium'>{`${user?.first_name} ${user?.last_name}`}</span>
+									<span className='truncate text-xs'>{`@${user?.username}`}</span>
+								</div>
+							</div>
+						</DropdownMenuLabel>
+						<DropdownMenuSeparator />
+						<DropdownMenuGroup>
+							<DropdownMenuItem onClick={() => handleSignOut()}>
+								<LogOutIcon />
+								Выйти
+							</DropdownMenuItem>
+						</DropdownMenuGroup>
+					</DropdownMenuContent>
+				</DropdownMenu>
+			</SidebarHeader>
+			<SidebarContent>
+				<SidebarGroup>
+					<SidebarGroupContent>
+						<SidebarMenu>
+							{items.map(item => (
+								<SidebarMenuItem key={item.title}>
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<SidebarMenuButton
+												isActive={pathname === item.url}
+												asChild
+												size='md'
+											>
+												<Link href={item.url}>
+													<item.icon />
+													<span>{item.title}</span>
+												</Link>
+											</SidebarMenuButton>
+										</TooltipTrigger>
+										<TooltipContent side='right'>
+											<p>{item.title}</p>
+										</TooltipContent>
+									</Tooltip>
+								</SidebarMenuItem>
+							))}
+						</SidebarMenu>
+					</SidebarGroupContent>
+				</SidebarGroup>
+			</SidebarContent>
+			<SidebarFooter />
+		</Sidebar>
 	)
 }

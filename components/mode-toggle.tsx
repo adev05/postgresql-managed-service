@@ -14,14 +14,14 @@ export function ModeToggle() {
 	}, [])
 
 	if (!mounted) {
-		return <Button variant='secondary' size='icon'></Button>
+		return <Button variant='ghost' size='icon'></Button>
 	}
 
 	return (
 		<>
 			{mounted && (
 				<Button
-					variant='secondary'
+					variant='ghost'
 					size='icon'
 					onClick={() => setTheme(resolvedTheme === 'light' ? 'dark' : 'light')}
 					aria-label='Toggle theme'

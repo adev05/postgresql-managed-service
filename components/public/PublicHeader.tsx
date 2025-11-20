@@ -3,6 +3,7 @@
 import { TelegramLoginButton } from '@/components/auth/TelegramLoginButton'
 import { Logotype } from '@/components/ui/logotype'
 import { ModeToggle } from '@/components/mode-toggle'
+import { DevLoginButton } from '../auth/DevLoginButton'
 
 export function PublicHeader() {
 	return (
@@ -11,6 +12,7 @@ export function PublicHeader() {
 				<Logotype />
 				<div className='flex items-center gap-2'>
 					<TelegramLoginButton />
+					<DevLoginButton />
 					<ModeToggle />
 				</div>
 			</div>

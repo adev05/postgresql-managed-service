@@ -2,7 +2,7 @@ import NextAuth from 'next-auth'
 import { JWT } from 'next-auth/jwt'
 import { authConfig } from '@/auth.config'
 
-const API_URL = process.env.API_URL!
+const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL
 
 async function refreshAccessToken(token: JWT): Promise<JWT> {
 	try {

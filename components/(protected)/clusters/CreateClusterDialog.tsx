@@ -21,7 +21,6 @@ import {
 	SelectValue,
 } from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
-import { PlusIcon } from '@heroicons/react/24/solid'
 import { CreateClusterPayload } from '@/types/cluster'
 import { createCluster } from '@/actions/cluster'
 
@@ -35,13 +34,7 @@ const INITIAL_FORM: CreateClusterPayload = {
 
 const PG_VERSIONS = ['18', '17', '16'] as const
 
-interface CreateClusterDialogProps {
-	variant?: 'positive' | 'secondary'
-}
-
-export default function CreateClusterDialog({
-	variant = 'positive',
-}: CreateClusterDialogProps) {
+export default function CreateClusterDialog() {
 	const [open, setOpen] = useState(false)
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
@@ -83,16 +76,8 @@ export default function CreateClusterDialog({
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogTrigger asChild>
-				<Button variant={variant} className='h-full'>
-					{variant === 'positive' ? (
-						'Создать кластер'
-					) : (
-						<PlusIcon
-							width={24}
-							height={24}
-							className='text-muted-foreground'
-						/>
-					)}
+				<Button variant='positive' className='h-full'>
+					Создать кластер
 				</Button>
 			</DialogTrigger>
 			<DialogContent className='sm:max-w-[600px]'>

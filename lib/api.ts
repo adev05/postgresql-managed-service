@@ -1,9 +1,11 @@
 import type { Cluster } from '@/types/cluster'
 
-const API_URL = process.env.API_URL
+const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL
 
 if (!API_URL) {
-	throw new Error('API_URL is not defined in environment variables')
+	throw new Error(
+		'API_URL is not defined in environment variables. Make sure to set it in your .env file.'
+	)
 }
 
 // Базовая функция для API запросов
@@ -38,14 +40,28 @@ async function apiFetch<T>(
 	return res.json()
 }
 
-export async function getClusters(token: string): Promise<Cluster[]> {
+interface GetClustersParams {
+	limit?: number
+	offset?: number
+}
+
+export async function getClusters(
+	token: string,
+	params?: GetClustersParams
+): Promise<Cluster[]> {
 	if (!token) {
 		return []
 	}
 
+	const { limit = 8, offset = 0 } = params || {}
+	const queryParams = new URLSearchParams({
+		limit: limit.toString(),
+		offset: offset.toString(),
+	})
+
 	try {
-		return await apiFetch<Cluster[]>('/clusters', token, {
-			next: { revalidate: 0 }, // Next.js 15 способ вместо cache: 'no-store'
+		return await apiFetch<Cluster[]>(`/clusters?${queryParams}`, token, {
+			next: { revalidate: 0 },
 		})
 	} catch (error) {
 		console.error('Error fetching clusters:', error)
@@ -63,7 +79,7 @@ export async function getCluster(
 
 	try {
 		return await apiFetch<Cluster>(`/clusters/${id}`, token, {
-			next: { revalidate: 60 }, // Кэшируем на 60 секунд
+			next: { revalidate: 60 },
 		})
 	} catch (error) {
 		console.error(`Error fetching cluster ${id}:`, error)

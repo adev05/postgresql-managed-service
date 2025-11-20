@@ -1,17 +1,32 @@
-import { Suspense } from 'react'
 import { TypographyH1 } from '@/components/ui/TypographyH1'
-import { TypographyH3 } from '@/components/ui/TypographyH3'
-import ClustersSkeleton from '@/components/(protected)/clusters/ClustersSkeleton'
-import ClustersContent from '@/components/(protected)/clusters/ClustersContent'
+import CreateClusterDialog from '@/components/(protected)/clusters/CreateClusterDialog'
+import ClustersControls from '@/components/(protected)/clusters/ClustersControls'
+import { auth } from '@/auth'
+import { getClusters } from '@/lib/api'
 
-export default function ClustersPage() {
+export default async function ClustersPage() {
+	// Загружаем данные на сервере
+	const session = await auth()
+	const accessToken = session?.access_token || ''
+
+	const initialClusters = await getClusters(accessToken, {
+		limit: 8,
+		offset: 0,
+	})
+
 	return (
 		<main>
-			<TypographyH1>Кластеры PostgreSQL</TypographyH1>
-			<TypographyH3>Доступные кластеры</TypographyH3>
-			<Suspense fallback={<ClustersSkeleton />}>
-				<ClustersContent />
-			</Suspense>
+			<div className='flex items-center justify-between mb-8 gap-4'>
+				<TypographyH1>Кластеры PostgreSQL</TypographyH1>
+				<CreateClusterDialog />
+			</div>
+
+			<section>
+				<ClustersControls
+					initialClusters={initialClusters}
+					accessToken={accessToken}
+				/>
+			</section>
 		</main>
 	)
 }

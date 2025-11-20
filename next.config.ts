@@ -7,6 +7,15 @@ const nextConfig: NextConfig = {
 			allowedOrigins: ['localhost:3000', 'm6bvjg40-3000.euw.devtunnels.ms'],
 		},
 	},
+	images: {
+		remotePatterns: [
+			{
+				protocol: 'https',
+				hostname: 't.me',
+				pathname: '/i/userpic/**',
+			},
+		],
+	},
 }
 
 export default nextConfig

@@ -1,20 +1,28 @@
-import CreateClusterDialog from '@/components/(protected)/clusters/CreateClusterDialog'
 import { Cluster } from '@/types/cluster'
 import ClusterCard from '@/components/(protected)/clusters/ClusterCard'
 
 interface ClustersListProps {
 	clusters: Cluster[]
+	viewMode?: 'grid' | 'list'
 }
 
-export default function ClustersList({ clusters }: ClustersListProps) {
+export default function ClustersList({
+	clusters,
+	viewMode = 'grid',
+}: ClustersListProps) {
 	if (!clusters || clusters.length === 0) return null
 
 	return (
-		<section className='grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4'>
+		<section
+			className={
+				viewMode === 'grid'
+					? 'grid gap-4 lg:grid-cols-1 xl:grid-cols-4'
+					: 'flex flex-col gap-4'
+			}
+		>
 			{clusters.map(cluster => (
-				<ClusterCard key={cluster.id} cluster={cluster} />
+				<ClusterCard key={cluster.id} cluster={cluster} viewMode={viewMode} />
 			))}
-			<CreateClusterDialog variant='secondary' />
 		</section>
 	)
 }

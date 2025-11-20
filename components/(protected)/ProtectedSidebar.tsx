@@ -12,7 +12,7 @@ import {
 	QuestionMarkCircleIcon,
 	UserCircleIcon,
 } from '@heroicons/react/24/solid'
-import Image from 'next/image'
+import { UserAvatar } from '@/components/ui/UserAvatar'
 
 const links = [
 	{ href: '/dashboard', label: 'Главная', icon: HomeIcon },
@@ -33,11 +33,7 @@ export function ProtectedSidebar() {
 				className='p-4 flex items-center gap-3 cursor-pointer group hover:bg-muted-foreground/5 transition-colors'
 			>
 				{user?.photo_url ? (
-					<Image
-						src={user.photo_url}
-						alt={user.first_name}
-						className='w-11 h-11 rounded-full object-cover'
-					/>
+					<UserAvatar src={user.photo_url} alt={user.first_name} size='md' />
 				) : (
 					<div className='w-11 h-11 rounded-full bg-muted-foreground/10 flex items-center justify-center'>
 						<UserCircleIcon className='w-7 h-7 text-muted-foreground' />

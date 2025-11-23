@@ -9,7 +9,6 @@ import {
 	getFacetedRowModel,
 	getFacetedUniqueValues,
 	getFilteredRowModel,
-	getPaginationRowModel,
 	getSortedRowModel,
 	SortingState,
 	useReactTable,
@@ -54,6 +53,7 @@ import { CLUSTER_STATUS } from '@/constants/clusterStatuses'
 import { useRouter } from 'next/navigation'
 import CreateClusterDialog from './CreateClusterDialog'
 import { ChevronDown, Columns2 } from 'lucide-react'
+import { fetchClusters } from '@/lib/actions/clusters'
 
 const columns: ColumnDef<Cluster>[] = [
 	{
@@ -159,16 +159,19 @@ const columns: ColumnDef<Cluster>[] = [
 ]
 
 interface ClustersDataTableProps {
-	initialClusters: Cluster[]
+	clusters: Cluster[]
+	total: number
 	accessToken: string
 }
 
 export default function ClustersDataTable({
-	initialClusters,
+	clusters,
+	total,
 	accessToken,
 }: ClustersDataTableProps) {
 	const router = useRouter()
-	const [data, setData] = React.useState<Cluster[]>(initialClusters)
+	const [data, setData] = React.useState<Cluster[]>(clusters)
+	const [totalRows, setTotalRows] = React.useState(total)
 	const [rowSelection, setRowSelection] = React.useState({})
 	const [columnVisibility, setColumnVisibility] =
 		React.useState<VisibilityState>({})
@@ -183,9 +186,13 @@ export default function ClustersDataTable({
 	const [globalFilter, setGlobalFilter] = React.useState('')
 	const [isLoading, setIsLoading] = React.useState(false)
 
+	// Вычисляем количество страниц на основе total с сервера
+	const pageCount = Math.ceil(totalRows / pagination.pageSize)
+
 	const table = useReactTable({
 		data,
 		columns,
+		pageCount, // Передаем количество страниц
 		state: {
 			sorting,
 			columnVisibility,
@@ -203,32 +210,49 @@ export default function ClustersDataTable({
 		onGlobalFilterChange: setGlobalFilter,
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFacetedRowModel: getFacetedRowModel(),
 		getFacetedUniqueValues: getFacetedUniqueValues(),
+		// Ключевые настройки для серверной пагинации
+		manualPagination: true, // Отключаем клиентскую пагинацию
+		manualFiltering: false, // Можно включить серверную фильтрацию позже
+		manualSorting: false, // Можно включить серверную сортировку позже
 	})
 
 	// Загрузка данных при изменении пагинации
 	React.useEffect(() => {
-		const fetchClusters = async () => {
+		// const fetchClusters = async () => {
+		// 	setIsLoading(true)
+		// 	try {
+		// 		const response = await fetch(
+		// 			`/api/clusters?limit=${pagination.pageSize}&offset=${
+		// 				pagination.pageIndex * pagination.pageSize
+		// 			}`
+		// 		)
+
+		// 		if (!response.ok) throw new Error('Failed to fetch clusters')
+
+		// 		const result: { clusters: Cluster[]; total: number } =
+		// 			await response.json()
+		// 		setData(result.clusters)
+		// 		setTotalRows(result.total)
+		// 	} catch (error) {
+		// 		console.error('Error loading clusters:', error)
+		// 	} finally {
+		// 		setIsLoading(false)
+		// 	}
+		// }
+
+		// fetchClusters()
+		const loadClusters = async () => {
 			setIsLoading(true)
 			try {
-				const response = await fetch(
-					`/api/clusters?limit=${pagination.pageSize}&offset=${
-						pagination.pageIndex * pagination.pageSize
-					}`,
-					{
-						headers: {
-							Authorization: accessToken,
-						},
-					}
+				const result = await fetchClusters(
+					pagination.pageSize,
+					pagination.pageIndex * pagination.pageSize
 				)
-
-				if (!response.ok) throw new Error('Failed to fetch clusters')
-
-				const newClusters: Cluster[] = await response.json()
-				setData(newClusters)
+				setData(result.clusters)
+				setTotalRows(result.total)
 			} catch (error) {
 				console.error('Error loading clusters:', error)
 			} finally {
@@ -236,10 +260,24 @@ export default function ClustersDataTable({
 			}
 		}
 
-		if (pagination.pageIndex > 0) {
-			fetchClusters()
+		loadClusters()
+	}, [pagination.pageIndex, pagination.pageSize])
+
+	const refreshClusters = React.useCallback(async () => {
+		setIsLoading(true)
+		try {
+			const result = await fetchClusters(
+				pagination.pageSize,
+				pagination.pageIndex * pagination.pageSize
+			)
+			setData(result.clusters)
+			setTotalRows(result.total)
+		} catch (error) {
+			console.error('Error loading clusters:', error)
+		} finally {
+			setIsLoading(false)
 		}
-	}, [pagination.pageIndex, pagination.pageSize, accessToken])
+	}, [pagination.pageSize, pagination.pageIndex])
 
 	return (
 		<div className='w-full flex flex-col gap-4'>
@@ -255,31 +293,6 @@ export default function ClustersDataTable({
 					/>
 				</div>
 				<div className='flex items-center gap-3 ml-auto'>
-					{/* <ToggleGroup
-						type='single'
-						value={viewMode}
-						onValueChange={value =>
-							value && setViewMode(value as 'grid' | 'list')
-						}
-						className='rounded-xl'
-					>
-						<ToggleGroupItem
-							value='grid'
-							aria-label='Вид сеткой'
-							className='gap-2'
-						>
-							<Squares2X2Icon className='w-4 h-4' />
-							<span className='hidden sm:inline'>Сетка</span>
-						</ToggleGroupItem>
-						<ToggleGroupItem
-							value='list'
-							aria-label='Вид списком'
-							className='gap-2'
-						>
-							<ListBulletIcon className='w-4 h-4' />
-							<span className='hidden sm:inline'>Список</span>
-						</ToggleGroupItem>
-					</ToggleGroup> */}
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button variant='outline'>
@@ -312,7 +325,7 @@ export default function ClustersDataTable({
 								})}
 						</DropdownMenuContent>
 					</DropdownMenu>
-					<CreateClusterDialog />
+					<CreateClusterDialog onClusterCreated={refreshClusters} />
 				</div>
 			</div>
 
@@ -391,8 +404,8 @@ export default function ClustersDataTable({
 			{/* Пагинация */}
 			<div className='flex items-center justify-between px-4'>
 				<div className='text-muted-foreground hidden flex-1 text-sm lg:flex'>
-					{table.getFilteredSelectedRowModel().rows.length} из{' '}
-					{table.getFilteredRowModel().rows.length} строк выбрано.
+					{table.getFilteredSelectedRowModel().rows.length} из {data.length}{' '}
+					строк на странице выбрано.
 				</div>
 				<div className='flex w-full items-center gap-8 lg:w-fit'>
 					<div className='hidden items-center gap-2 lg:flex'>
@@ -421,7 +434,7 @@ export default function ClustersDataTable({
 					</div>
 					<div className='flex w-fit items-center justify-center text-sm font-medium'>
 						Страница {table.getState().pagination.pageIndex + 1} из{' '}
-						{table.getPageCount()}
+						{pageCount || 1}
 					</div>
 					<div className='ml-auto flex items-center gap-2 lg:ml-0'>
 						<Button
@@ -429,7 +442,7 @@ export default function ClustersDataTable({
 							className='size-8'
 							size='icon'
 							onClick={() => table.previousPage()}
-							disabled={!table.getCanPreviousPage()}
+							disabled={!table.getCanPreviousPage() || isLoading}
 						>
 							<span className='sr-only'>Предыдущая страница</span>
 							<ChevronLeftIcon className='w-4 h-4' />
@@ -439,7 +452,7 @@ export default function ClustersDataTable({
 							className='size-8'
 							size='icon'
 							onClick={() => table.nextPage()}
-							disabled={!table.getCanNextPage()}
+							disabled={!table.getCanNextPage() || isLoading}
 						>
 							<span className='sr-only'>Следующая страница</span>
 							<ChevronRightIcon className='w-4 h-4' />

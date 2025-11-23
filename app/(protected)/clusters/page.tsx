@@ -10,7 +10,7 @@ export default async function ClustersPage() {
 	const session = await auth()
 	const accessToken = session?.access_token || ''
 
-	const initialClusters = await getClusters(accessToken, {
+	const { clusters, total } = await getClusters(accessToken, {
 		limit: 10,
 		offset: 0,
 	})
@@ -22,7 +22,8 @@ export default async function ClustersPage() {
 				accessToken={accessToken}
 			/> */}
 			<ClustersDataTable
-				initialClusters={initialClusters}
+				clusters={clusters}
+				total={total}
 				accessToken={accessToken}
 			/>
 		</section>

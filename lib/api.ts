@@ -48,24 +48,28 @@ interface GetClustersParams {
 export async function getClusters(
 	token: string,
 	params?: GetClustersParams
-): Promise<Cluster[]> {
+): Promise<{ clusters: Cluster[]; total: number }> {
 	if (!token) {
-		return []
+		return { clusters: [], total: 0 }
 	}
 
-	const { limit = 8, offset = 0 } = params || {}
+	const { limit = 10, offset = 0 } = params || {}
 	const queryParams = new URLSearchParams({
 		limit: limit.toString(),
 		offset: offset.toString(),
 	})
 
 	try {
-		return await apiFetch<Cluster[]>(`/clusters?${queryParams}`, token, {
-			next: { revalidate: 0 },
-		})
+		return await apiFetch<{ clusters: Cluster[]; total: number }>(
+			`/clusters?${queryParams}`,
+			token,
+			{
+				next: { revalidate: 0 },
+			}
+		)
 	} catch (error) {
 		console.error('Error fetching clusters:', error)
-		return []
+		return { clusters: [], total: 0 }
 	}
 }
 

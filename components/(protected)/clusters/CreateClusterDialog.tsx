@@ -59,6 +59,7 @@ export default function CreateClusterDialog({
 		setError(null)
 		try {
 			const newCluster = await createCluster(form)
+			onClusterCreated?.(newCluster)
 			setOpen(false)
 			setForm(INITIAL_FORM)
 

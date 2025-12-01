@@ -21,7 +21,7 @@ import {
 	SelectValue,
 } from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
-import { Cluster, ClusterResponse, CreateClusterPayload } from '@/types/cluster'
+import { ClusterResponse, CreateClusterPayload } from '@/types/cluster'
 import { createCluster } from '@/actions/cluster'
 
 const INITIAL_FORM: CreateClusterPayload = {

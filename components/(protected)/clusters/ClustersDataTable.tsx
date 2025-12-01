@@ -135,7 +135,7 @@ const columns: ColumnDef<Cluster>[] = [
 	},
 	{
 		id: 'actions',
-		cell: ({ row }) => (
+		cell: () => (
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
 					<Button
@@ -161,13 +161,11 @@ const columns: ColumnDef<Cluster>[] = [
 interface ClustersDataTableProps {
 	clusters: Cluster[]
 	total: number
-	accessToken: string
 }
 
 export default function ClustersDataTable({
 	clusters,
 	total,
-	accessToken,
 }: ClustersDataTableProps) {
 	const router = useRouter()
 	const [data, setData] = React.useState<Cluster[]>(clusters)
@@ -221,29 +219,6 @@ export default function ClustersDataTable({
 
 	// Загрузка данных при изменении пагинации
 	React.useEffect(() => {
-		// const fetchClusters = async () => {
-		// 	setIsLoading(true)
-		// 	try {
-		// 		const response = await fetch(
-		// 			`/api/clusters?limit=${pagination.pageSize}&offset=${
-		// 				pagination.pageIndex * pagination.pageSize
-		// 			}`
-		// 		)
-
-		// 		if (!response.ok) throw new Error('Failed to fetch clusters')
-
-		// 		const result: { clusters: Cluster[]; total: number } =
-		// 			await response.json()
-		// 		setData(result.clusters)
-		// 		setTotalRows(result.total)
-		// 	} catch (error) {
-		// 		console.error('Error loading clusters:', error)
-		// 	} finally {
-		// 		setIsLoading(false)
-		// 	}
-		// }
-
-		// fetchClusters()
 		const loadClusters = async () => {
 			setIsLoading(true)
 			try {

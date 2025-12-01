@@ -9,5 +9,3 @@ export const CLUSTER_STATUS = {
 } as const
 
 export type ClusterStatusKey = keyof typeof CLUSTER_STATUS
-export type ClusterStatusVariant =
-	(typeof CLUSTER_STATUS)[ClusterStatusKey]['variant']

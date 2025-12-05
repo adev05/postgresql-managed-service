@@ -10,6 +10,7 @@ import {
 	SidebarFooter,
 	SidebarGroup,
 	SidebarGroupContent,
+	SidebarGroupLabel,
 	SidebarHeader,
 	SidebarMenu,
 	SidebarMenuButton,
@@ -24,6 +25,9 @@ import {
 	Search,
 	Settings,
 	UserRound,
+	Users,
+	Wrench,
+	Server,
 } from 'lucide-react'
 import {
 	DropdownMenu,
@@ -40,7 +44,7 @@ import { Avatar, AvatarFallback } from '../ui/avatar'
 import { Logotype } from '../ui/logotype'
 
 const data = {
-	navMain: [
+	navMainUser: [
 		{
 			title: 'Главная',
 			url: '/dashboard',
@@ -52,7 +56,29 @@ const data = {
 			icon: Database,
 		},
 	],
-	navSecondary: [
+	navMainAdmin: [
+		{
+			title: 'HyperV хосты',
+			url: '/',
+			icon: Server,
+		},
+		{
+			title: 'Тех. поддержка',
+			url: '/',
+			icon: MessageCircleQuestionMark,
+		},
+		{
+			title: 'Управление кластерами',
+			url: '/',
+			icon: Wrench,
+		},
+		{
+			title: 'Управление пользователями',
+			url: '/',
+			icon: Users,
+		},
+	],
+	navFooter: [
 		{
 			title: 'Настройки',
 			url: '/settings',
@@ -98,9 +124,31 @@ export function ProtectedSidebar() {
 			</SidebarHeader>
 			<SidebarContent>
 				<SidebarGroup>
+					<SidebarGroupLabel>Меню</SidebarGroupLabel>
 					<SidebarGroupContent>
 						<SidebarMenu>
-							{data.navMain.map(item => (
+							{data.navMainUser.map(item => (
+								<SidebarMenuItem key={item.title}>
+									<SidebarMenuButton
+										isActive={pathname === item.url}
+										asChild
+										size='md'
+									>
+										<Link href={item.url}>
+											<item.icon />
+											<span>{item.title}</span>
+										</Link>
+									</SidebarMenuButton>
+								</SidebarMenuItem>
+							))}
+						</SidebarMenu>
+					</SidebarGroupContent>
+				</SidebarGroup>
+				<SidebarGroup>
+					<SidebarGroupLabel>Админ-панель</SidebarGroupLabel>
+					<SidebarGroupContent>
+						<SidebarMenu>
+							{data.navMainAdmin.map(item => (
 								<SidebarMenuItem key={item.title}>
 									<SidebarMenuButton
 										isActive={pathname === item.url}
@@ -120,7 +168,7 @@ export function ProtectedSidebar() {
 				<SidebarGroup className='mt-auto'>
 					<SidebarGroupContent>
 						<SidebarMenu>
-							{data.navSecondary.map(item => (
+							{data.navFooter.map(item => (
 								<SidebarMenuItem key={item.title}>
 									<SidebarMenuButton
 										isActive={pathname === item.url}

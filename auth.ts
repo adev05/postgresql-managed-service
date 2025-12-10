@@ -1,6 +1,7 @@
 import NextAuth from 'next-auth'
 import { JWT } from 'next-auth/jwt'
 import { authConfig } from '@/auth.config'
+import { getPermissionLevelFromToken } from '@/lib/jwt-utils'
 
 const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL
 
@@ -20,11 +21,15 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
 
 		console.log('[AUTH] Token refreshed successfully')
 
+		// Извлекаем permission_level из нового access токена
+		const permissionLevel = getPermissionLevelFromToken(refreshed.access_token)
+
 		return {
 			...token,
 			access_token: refreshed.access_token,
 			refresh_token: refreshed.refresh_token ?? token.refresh_token,
 			expires_at: Date.now() + refreshed.expires_in * 1000,
+			permission_level: permissionLevel,
 		}
 	} catch (error) {
 		console.error('[AUTH] Token refresh failed:', error)
@@ -58,6 +63,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 					token_type: user.token_type,
 					expires_at: Date.now() + user.expires_in * 1000,
 					refresh_token: user.refresh_token,
+					permission_level: user.permission_level,
 				}
 			}
 
@@ -84,6 +90,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 					last_name: token.last_name as string,
 					username: token.username as string,
 					photo_url: token.photo_url as string,
+					permission_level: token.permission_level as number | undefined,
 				},
 				access_token: `${token.token_type} ${token.access_token}`,
 			}

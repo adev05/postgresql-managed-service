@@ -42,6 +42,7 @@ import { handleSignOut } from '@/app/actions/auth'
 import { Spinner } from '../ui/spinner'
 import { Avatar, AvatarFallback } from '../ui/avatar'
 import { Logotype } from '../ui/logotype'
+import { isAdminLevel } from '@/lib/permissions'
 
 const data = {
 	navMainUser: [
@@ -59,22 +60,22 @@ const data = {
 	navMainAdmin: [
 		{
 			title: 'HyperV хосты',
-			url: '/',
+			url: '/admin/hyperv-hosts',
 			icon: Server,
 		},
 		{
 			title: 'Тех. поддержка',
-			url: '/',
+			url: '/admin/support',
 			icon: MessageCircleQuestionMark,
 		},
 		{
 			title: 'Управление кластерами',
-			url: '/',
+			url: '/admin/clusters',
 			icon: Wrench,
 		},
 		{
 			title: 'Управление пользователями',
-			url: '/',
+			url: '/admin/users',
 			icon: Users,
 		},
 	],
@@ -102,6 +103,7 @@ export function ProtectedSidebar() {
 	const { data: session, status } = useSession()
 
 	const user = session?.user
+	const isAdmin = isAdminLevel(user?.permission_level)
 
 	if (status === 'loading') {
 		return (
@@ -144,27 +146,29 @@ export function ProtectedSidebar() {
 						</SidebarMenu>
 					</SidebarGroupContent>
 				</SidebarGroup>
-				<SidebarGroup>
-					<SidebarGroupLabel>Админ-панель</SidebarGroupLabel>
-					<SidebarGroupContent>
-						<SidebarMenu>
-							{data.navMainAdmin.map(item => (
-								<SidebarMenuItem key={item.title}>
-									<SidebarMenuButton
-										isActive={pathname === item.url}
-										asChild
-										size='md'
-									>
-										<Link href={item.url}>
-											<item.icon />
-											<span>{item.title}</span>
-										</Link>
-									</SidebarMenuButton>
-								</SidebarMenuItem>
-							))}
-						</SidebarMenu>
-					</SidebarGroupContent>
-				</SidebarGroup>
+				{isAdmin && (
+					<SidebarGroup>
+						<SidebarGroupLabel>Админ-панель</SidebarGroupLabel>
+						<SidebarGroupContent>
+							<SidebarMenu>
+								{data.navMainAdmin.map(item => (
+									<SidebarMenuItem key={item.title}>
+										<SidebarMenuButton
+											isActive={pathname === item.url}
+											asChild
+											size='md'
+										>
+											<Link href={item.url}>
+												<item.icon />
+												<span>{item.title}</span>
+											</Link>
+										</SidebarMenuButton>
+									</SidebarMenuItem>
+								))}
+							</SidebarMenu>
+						</SidebarGroupContent>
+					</SidebarGroup>
+				)}
 				<SidebarGroup className='mt-auto'>
 					<SidebarGroupContent>
 						<SidebarMenu>

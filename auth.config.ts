@@ -1,6 +1,8 @@
 import type { NextAuthConfig } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import type { TelegramCredentials, AuthTokens } from '@/types/auth'
+import { isAdminLevel } from '@/lib/permissions'
+import { getPermissionLevelFromToken } from '@/lib/jwt-utils'
 
 const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL
 
@@ -38,6 +40,11 @@ export const authConfig: NextAuthConfig = {
 					const tokens: AuthTokens = await res.json()
 					const creds = credentials as unknown as TelegramCredentials
 
+					// Извлекаем permission_level из access токена
+					const permissionLevel = getPermissionLevelFromToken(tokens.access_token)
+
+					console.log('[AUTH] Login successful, permission_level:', permissionLevel)
+
 					return {
 						id: String(creds.id),
 						first_name: creds.first_name,
@@ -48,6 +55,7 @@ export const authConfig: NextAuthConfig = {
 						token_type: tokens.token_type,
 						expires_in: tokens.expires_in,
 						refresh_token: tokens.refresh_token,
+						permission_level: permissionLevel,
 					}
 				} catch (error) {
 					console.error('[AUTH] Authorize error:', error)
@@ -65,12 +73,19 @@ export const authConfig: NextAuthConfig = {
 			const isOnDashboard = nextUrl.pathname.startsWith('/dashboard')
 			const isOnClusters = nextUrl.pathname.startsWith('/clusters')
 			const isOnHelp = nextUrl.pathname.startsWith('/help')
+			const isOnAdmin = nextUrl.pathname.startsWith('/admin')
 			const isOnRoot = nextUrl.pathname === '/'
 
-			const isProtectedPath = isOnDashboard || isOnClusters || isOnHelp
+			const isProtectedPath = isOnDashboard || isOnClusters || isOnHelp || isOnAdmin
 
+			// Проверка базовой авторизации
 			if (isProtectedPath && !isLoggedIn) {
 				return false // Redirect to login page
+			}
+
+			// Проверка админ-доступа по permission_level
+			if (isOnAdmin && !isAdminLevel(auth?.user?.permission_level)) {
+				return false // Redirect to dashboard
 			}
 
 			if (isOnRoot && isLoggedIn) {

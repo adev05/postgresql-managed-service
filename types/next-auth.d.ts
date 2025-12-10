@@ -12,6 +12,7 @@ declare module 'next-auth' {
 		token_type: string
 		expires_in: number
 		refresh_token: string
+		permission_level?: number
 	}
 
 	interface Session {
@@ -21,6 +22,7 @@ declare module 'next-auth' {
 			last_name: string
 			username: string
 			photo_url: string
+			permission_level?: number
 		}
 		access_token: string
 		error?: string
@@ -38,6 +40,7 @@ declare module 'next-auth/jwt' {
 		token_type: string
 		expires_at: number
 		refresh_token: string
+		permission_level?: number
 		error?: string
 	}
 }

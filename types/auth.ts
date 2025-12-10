@@ -13,6 +13,7 @@ export interface AuthTokens {
 	token_type: string
 	expires_in: number
 	refresh_token: string
+	permission_level?: number // уровень доступа из токена (1 - user, 2048 - admin)
 }
 
 export interface TelegramUser {
@@ -21,4 +22,5 @@ export interface TelegramUser {
 	last_name?: string
 	username?: string
 	photo_url?: string
+	permission_level?: number
 }

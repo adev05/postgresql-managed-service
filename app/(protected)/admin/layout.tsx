@@ -25,15 +25,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
 
 	return (
 		<AdminContentGuard>
-			<div className='flex h-screen overflow-hidden'>
-				{/* <ProtectedSidebar /> */}
-				<div className='flex flex-col flex-1'>
-					{/* <ProtectedHeader /> */}
-					<main className='flex-1 overflow-y-auto p-4 md:p-8'>
-						<div className='max-w-7xl'>{children}</div>
-					</main>
-				</div>
-			</div>
+			<div className='px-4 lg:px-6'>{children}</div>
 		</AdminContentGuard>
 	)
 }

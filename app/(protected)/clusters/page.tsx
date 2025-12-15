@@ -3,7 +3,8 @@
 // import ClustersControls from '@/components/(protected)/clusters/ClustersControls'
 import { auth } from '@/auth'
 import { getClusters } from '@/lib/api'
-import ClustersDataTable from '@/components/(protected)/clusters/ClustersDataTable'
+// import ClustersDataTable from '@/components/(protected)/clusters/ClustersDataTable'
+import ClustersTable from '@/components/(protected)/clusters/ClustersTable'
 
 export default async function ClustersPage() {
 	const session = await auth()
@@ -16,7 +17,7 @@ export default async function ClustersPage() {
 
 	return (
 		<section className='px-4 lg:px-6'>
-			<ClustersDataTable clusters={clusters} total={total} />
+			<ClustersTable initialClusters={clusters} initialTotal={total} />
 		</section>
 	)
 }

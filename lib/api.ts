@@ -1,4 +1,5 @@
 import type { Cluster } from '@/types/cluster'
+import { HyperVHost } from '@/types/hyperv-host'
 
 const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL
 
@@ -87,6 +88,57 @@ export async function getCluster(
 		})
 	} catch (error) {
 		console.error(`Error fetching cluster ${id}:`, error)
+		return null
+	}
+}
+
+interface GetHyperVHostsParams {
+	limit?: number
+	offset?: number
+}
+
+export async function getHyperVHosts(
+	token: string,
+	params?: GetHyperVHostsParams
+): Promise<{ hosts: HyperVHost[]; total: number }> {
+	if (!token) {
+		return { hosts: [], total: 0 }
+	}
+
+	const { limit = 10, offset = 0 } = params || {}
+	const queryParams = new URLSearchParams({
+		limit: limit.toString(),
+		offset: offset.toString(),
+	})
+
+	try {
+		return await apiFetch<{ hosts: HyperVHost[]; total: number }>(
+			`/admin/hosts?${queryParams}`,
+			token,
+			{
+				next: { revalidate: 0 },
+			}
+		)
+	} catch (error) {
+		console.error('Error fetching hyperv-hosts:', error)
+		return { hosts: [], total: 0 }
+	}
+}
+
+export async function getHyperVHost(
+	token: string,
+	id: string
+): Promise<HyperVHost | null> {
+	if (!token) {
+		return null
+	}
+
+	try {
+		return await apiFetch<HyperVHost>(`/hyperv-hosts/${id}`, token, {
+			next: { revalidate: 60 },
+		})
+	} catch (error) {
+		console.error(`Error fetching hyperv-host ${id}:`, error)
 		return null
 	}
 }

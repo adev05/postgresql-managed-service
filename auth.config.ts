@@ -41,9 +41,16 @@ export const authConfig: NextAuthConfig = {
 					const creds = credentials as unknown as TelegramCredentials
 
 					// Извлекаем permission_level из access токена
-					const permissionLevel = getPermissionLevelFromToken(tokens.access_token)
+					const permissionLevel = getPermissionLevelFromToken(
+						tokens.access_token
+					)
 
-					console.log('[AUTH] Login successful, permission_level:', permissionLevel)
+					console.log(
+						'[AUTH] Login successful, permission_level:',
+						permissionLevel,
+						'access_token:',
+						tokens.access_token
+					)
 
 					return {
 						id: String(creds.id),
@@ -76,7 +83,8 @@ export const authConfig: NextAuthConfig = {
 			const isOnAdmin = nextUrl.pathname.startsWith('/admin')
 			const isOnRoot = nextUrl.pathname === '/'
 
-			const isProtectedPath = isOnDashboard || isOnClusters || isOnHelp || isOnAdmin
+			const isProtectedPath =
+				isOnDashboard || isOnClusters || isOnHelp || isOnAdmin
 
 			// Проверка базовой авторизации
 			if (isProtectedPath && !isLoggedIn) {

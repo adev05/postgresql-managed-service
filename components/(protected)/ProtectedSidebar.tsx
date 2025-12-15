@@ -64,7 +64,7 @@ const data = {
 			icon: Server,
 		},
 		{
-			title: 'Тех. поддержка',
+			title: 'Служба поддержки',
 			url: '/admin/support',
 			icon: MessageCircleQuestionMark,
 		},

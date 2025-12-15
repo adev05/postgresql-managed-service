@@ -18,11 +18,18 @@ import { useClusterStore } from '@/stores/cluster-store'
 
 const PATH_NAMES: Record<string, string> = {
 	dashboard: 'Главная',
-	clusters: 'Кластеры',
+	clusters: 'Кластеры PostgreSQL',
 	settings: 'Настройки',
 	help: 'Помощь',
 	search: 'Поиск',
+	admin: 'Администрирование',
+	'hyperv-hosts': 'HyperV Хосты',
+	users: 'Управление пользователями',
+	support: 'Служба поддержки',
 }
+
+// Специальные названия для вложенных админ путей
+const ADMIN_CLUSTERS_NAME = 'Управление кластерами'
 
 export function ProtectedHeader() {
 	const pathname = usePathname()
@@ -34,18 +41,30 @@ export function ProtectedHeader() {
 
 		for (let i = 0; i < segments.length; i++) {
 			const segment = segments[i]
+
+			// Пропускаем сегмент (protected) - это техническая часть маршрута
+			if (segment === 'protected') continue
+
 			const path = '/' + segments.slice(0, i + 1).join('/')
 			const isLast = i === segments.length - 1
 
 			// Проверяем, является ли сегмент ID (для динамических роутов)
 			const prevSegment = i > 0 ? segments[i - 1] : null
 
-			// Если предыдущий сегмент - clusters, то текущий это ID кластера
-			if (prevSegment === 'clusters') {
+			// Если предыдущий сегмент - clusters и мы не в админке
+			if (prevSegment === 'clusters' && !segments.includes('admin')) {
 				// Это ID кластера - берем название из store
 				const clusterName = currentCluster?.name || ``
 				items.push({
 					label: clusterName,
+					path: path,
+					isLast: isLast,
+				})
+			}
+			// Специальная обработка для /admin/clusters
+			else if (segment === 'clusters' && segments.includes('admin')) {
+				items.push({
+					label: ADMIN_CLUSTERS_NAME,
 					path: path,
 					isLast: isLast,
 				})

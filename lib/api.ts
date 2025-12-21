@@ -95,6 +95,7 @@ export async function getCluster(
 interface GetHyperVHostsParams {
 	limit?: number
 	offset?: number
+	show_deleted?: boolean
 }
 
 export async function getHyperVHosts(
@@ -105,10 +106,11 @@ export async function getHyperVHosts(
 		return { hosts: [], total: 0 }
 	}
 
-	const { limit = 10, offset = 0 } = params || {}
+	const { limit = 10, offset = 0, show_deleted = false } = params || {}
 	const queryParams = new URLSearchParams({
 		limit: limit.toString(),
 		offset: offset.toString(),
+		show_deleted: show_deleted.toString(),
 	})
 
 	try {

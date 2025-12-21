@@ -199,22 +199,21 @@ export function DataTable<TData, TValue>({
 							<DropdownMenuContent align='end' className='w-56'>
 								{table
 									.getAllColumns()
-									.filter(
-										column =>
-											typeof column.accessorFn !== 'undefined' &&
-											column.getCanHide()
-									)
+									.filter(column => column.getCanHide())
 									.map(column => {
+										const header =
+											typeof column.columnDef.header === 'string'
+												? column.columnDef.header
+												: column.id
 										return (
 											<DropdownMenuCheckboxItem
 												key={column.id}
-												className='capitalize'
 												checked={column.getIsVisible()}
 												onCheckedChange={value =>
 													column.toggleVisibility(!!value)
 												}
 											>
-												{column.id}
+												{header}
 											</DropdownMenuCheckboxItem>
 										)
 									})}

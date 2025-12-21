@@ -22,7 +22,7 @@ const PATH_NAMES: Record<string, string> = {
 	settings: 'Настройки',
 	help: 'Помощь',
 	search: 'Поиск',
-	admin: 'Администрирование',
+	admin: 'Админ-панель',
 	'hyperv-hosts': 'HyperV Хосты',
 	users: 'Управление пользователями',
 	support: 'Служба поддержки',
@@ -44,6 +44,9 @@ export function ProtectedHeader() {
 
 			// Пропускаем сегмент (protected) - это техническая часть маршрута
 			if (segment === 'protected') continue
+
+			// Пропускаем admin - страница /admin не существует, есть только вложенные страницы
+			if (segment === 'admin') continue
 
 			const path = '/' + segments.slice(0, i + 1).join('/')
 			const isLast = i === segments.length - 1

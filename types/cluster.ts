@@ -9,6 +9,7 @@ export interface ClusterStatus {
 export interface Cluster {
 	id: string
 	name: string
+	db_name: string
 	pg_version: string
 	cpu: number
 	ram_mb: number
@@ -27,11 +28,13 @@ export interface CreateClusterPayload {
 	cpu: number
 	ram_mb: number
 	storage_gb: number
+	db_name: string
 }
 
 export interface ClusterResponse {
 	id: string
 	name: string
+	db_name: string
 	pg_version: string
 	cpu: number
 	ram_mb: number

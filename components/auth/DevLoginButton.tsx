@@ -1,7 +1,7 @@
 import { signIn } from 'next-auth/react'
 import { Button } from '../ui/button'
 
-const IS_DEV = process.env.NODE_ENV === 'development'
+const IS_DEV = process.env.NEXT_PUBLIC_NODE_ENV === 'development'
 
 export function DevLoginButton() {
 	const handleDevLogin = async () => {

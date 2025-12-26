@@ -1,0 +1,54 @@
+# Зависимости
+node_modules
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# Next.js
+.next
+out
+build
+dist
+
+# Тестирование
+coverage
+.nyc_output
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+*.log
+*.log.*
+
+# Локальные env файлы
+.env*.local
+.env.development
+.env.test
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# README и документация
+README.md

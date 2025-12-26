@@ -62,6 +62,8 @@ interface DataTableProps<TData, TValue> {
 	initialPageSize?: number
 	className?: string
 	emptyMessage?: string
+	renderExpandedRow?: (row: Row<TData>) => React.ReactNode
+	expandedRowId?: any
 }
 
 export function DataTable<TData, TValue>({
@@ -78,6 +80,8 @@ export function DataTable<TData, TValue>({
 	initialPageSize = 10,
 	className = '',
 	emptyMessage = 'Нет результатов.',
+	renderExpandedRow,
+	expandedRowId,
 }: DataTableProps<TData, TValue>) {
 	const [rowSelection, setRowSelection] = React.useState({})
 	const [columnVisibility, setColumnVisibility] =
@@ -257,31 +261,46 @@ export function DataTable<TData, TValue>({
 							</TableRow>
 						) : table.getRowModel().rows?.length ? (
 							table.getRowModel().rows.map(row => (
-								<TableRow
-									key={row.id}
-									data-state={row.getIsSelected() && 'selected'}
-									className={onRowClick ? 'cursor-pointer' : ''}
-									onClick={() => onRowClick?.(row)}
-								>
-									{row.getVisibleCells().map(cell => (
-										<TableCell
-											key={cell.id}
-											onClick={e => {
-												if (
-													cell.column.id === 'select' ||
-													cell.column.id === 'actions'
-												) {
-													e.stopPropagation()
-												}
-											}}
-										>
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext()
-											)}
-										</TableCell>
-									))}
-								</TableRow>
+								<React.Fragment key={row.id}>
+									<TableRow
+										data-state={row.getIsSelected() && 'selected'}
+										className={onRowClick ? 'cursor-pointer' : ''}
+										onClick={() => onRowClick?.(row)}
+									>
+										{row.getVisibleCells().map(cell => (
+											<TableCell
+												key={cell.id}
+												onClick={e => {
+													if (
+														cell.column.id === 'select' ||
+														cell.column.id === 'actions' ||
+														cell.column.id === 'expand'
+													) {
+														e.stopPropagation()
+													}
+												}}
+											>
+												{flexRender(
+													cell.column.columnDef.cell,
+													cell.getContext()
+												)}
+											</TableCell>
+										))}
+									</TableRow>
+									{renderExpandedRow &&
+										expandedRowId === (row.original as any).id && (
+											<TableRow>
+												<TableCell
+													colSpan={columns.length}
+													className='p-0 bg-muted/30'
+												>
+													<div className='animate-in slide-in-from-top-2 duration-200'>
+														{renderExpandedRow(row)}
+													</div>
+												</TableCell>
+											</TableRow>
+										)}
+								</React.Fragment>
 							))
 						) : (
 							<TableRow>

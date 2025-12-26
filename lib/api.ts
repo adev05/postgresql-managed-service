@@ -1,5 +1,5 @@
 import type { Cluster } from '@/types/cluster'
-import { HyperVHost } from '@/types/hyperv-host'
+import { HyperVHost, HyperVHostAuditLog } from '@/types/hyperv-host'
 
 const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL
 
@@ -142,5 +142,27 @@ export async function getHyperVHost(
 	} catch (error) {
 		console.error(`Error fetching hyperv-host ${id}:`, error)
 		return null
+	}
+}
+
+export async function getHyperVHostAuditLogs(
+	token: string,
+	hostId: number
+): Promise<HyperVHostAuditLog[]> {
+	if (!token) {
+		return []
+	}
+
+	try {
+		return await apiFetch<HyperVHostAuditLog[]>(
+			`/admin/hosts/${hostId}/audit`,
+			token,
+			{
+				cache: 'no-store',
+			}
+		)
+	} catch (error) {
+		console.error(`Error fetching audit logs for host ${hostId}:`, error)
+		return []
 	}
 }

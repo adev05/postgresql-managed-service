@@ -43,6 +43,8 @@ export default function EditHyperVHostDialog({
 		total_ram: host.total_ram,
 		total_cpu: host.total_cpu,
 		disks_path: host.disks_path || 'C:\\Hyper-V',
+		username: '',
+		password: '',
 	})
 
 	// Обновляем форму при изменении хоста
@@ -58,6 +60,8 @@ export default function EditHyperVHostDialog({
 				total_ram: host.total_ram,
 				total_cpu: host.total_cpu,
 				disks_path: host.disks_path || 'C:\\Hyper-V',
+				username: '',
+				password: '',
 			})
 		}
 	}, [host])
@@ -118,6 +122,39 @@ export default function EditHyperVHostDialog({
 							placeholder='192.168.1.100 или hyperv-host.example.com'
 							disabled={loading}
 						/>
+					</div>
+
+					<div className='grid grid-cols-2 gap-4'>
+						<div className='space-y-2'>
+							<Label htmlFor='username'>Имя пользователя</Label>
+							<Input
+								id='username'
+								value={form.username}
+								onChange={e => updateField('username', e.target.value)}
+								placeholder='administrator'
+								disabled={loading}
+								autoComplete='username'
+							/>
+							<p className='text-xs text-muted-foreground'>
+								Оставьте пустым, если не хотите менять
+							</p>
+						</div>
+
+						<div className='space-y-2'>
+							<Label htmlFor='password'>Пароль</Label>
+							<Input
+								id='password'
+								type='password'
+								value={form.password}
+								onChange={e => updateField('password', e.target.value)}
+								placeholder='••••••••'
+								disabled={loading}
+								autoComplete='current-password'
+							/>
+							<p className='text-xs text-muted-foreground'>
+								Оставьте пустым, если не хотите менять
+							</p>
+						</div>
 					</div>
 
 					<div className='space-y-2'>

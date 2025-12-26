@@ -36,4 +36,14 @@ export interface CreateHyperVHostPayload {
 	total_ram: number
 	total_cpu: number
 	disks_path: string
+	username: string
+	password: string
+}
+
+export interface HyperVHostAuditLog {
+	id: number
+	user_id: number
+	hyperv_host_id: number
+	log: string
+	created_at: string
 }

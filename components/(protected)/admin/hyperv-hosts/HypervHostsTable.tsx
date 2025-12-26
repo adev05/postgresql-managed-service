@@ -2,7 +2,10 @@
 
 import * as React from 'react'
 import { ColumnDef } from '@tanstack/react-table'
-import { EllipsisVerticalIcon } from '@heroicons/react/24/solid'
+import {
+	EllipsisVerticalIcon,
+	ChevronDownIcon,
+} from '@heroicons/react/24/solid'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
@@ -18,10 +21,15 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { fetchHyperVHosts } from '@/lib/actions/hyperv-hosts'
 import { HyperVHost } from '@/types/hyperv-host'
-import { HYPERVHOST_STATUS } from '@/constants/hyperVHostStatuses'
+import {
+	HYPERVHOST_STATUS,
+	HYPERVHOST_STATUS_ID_MAP,
+	HyperVHostStatusKey,
+} from '@/constants/hyperVHostStatuses'
 import CreateHyperVHostDialog from './CreateHyperVHostDialog'
 import EditHyperVHostDialog from './EditHyperVHostDialog'
-import { deleteHyperVHost } from '@/actions/hyperv-host'
+import HyperVHostAuditLogs from './HyperVHostAuditLogs'
+import { deleteHyperVHost, updateHyperVHostStatus } from '@/actions/hyperv-host'
 
 interface HyperVHostsTableProps {
 	initialHosts: HyperVHost[]
@@ -38,6 +46,7 @@ export default function HyperVHostsTable({
 	const [editingHost, setEditingHost] = React.useState<HyperVHost | null>(null)
 	const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false)
 	const [showDeleted, setShowDeleted] = React.useState(false)
+	const [expandedRowId, setExpandedRowId] = React.useState<number | null>(null)
 
 	const handlePaginationChange = React.useCallback(
 		async (pageSize: number, offset: number) => {
@@ -89,7 +98,56 @@ export default function HyperVHostsTable({
 		}
 	}
 
+	const handleStatusChange = async (
+		host: HyperVHost,
+		newStatusKey: HyperVHostStatusKey
+	) => {
+		try {
+			// Логируем для отладки
+			console.log('Current host status:', host.status)
+			console.log('Trying to change to:', newStatusKey)
+			console.log('Status ID map:', HYPERVHOST_STATUS_ID_MAP)
+
+			const statusId = HYPERVHOST_STATUS_ID_MAP[newStatusKey]
+			console.log('Sending status_id:', statusId)
+
+			const updatedHost = await updateHyperVHostStatus(host.id, statusId)
+			console.log('Updated host status:', updatedHost.status)
+
+			handleHostUpdated(updatedHost)
+		} catch (error) {
+			console.error('Error changing status:', error)
+			alert(
+				error instanceof Error ? error.message : 'Ошибка при изменении статуса'
+			)
+		}
+	}
+
 	const hyperVColumns: ColumnDef<HyperVHost>[] = [
+		{
+			id: 'expand',
+			header: () => <div className='w-8' />,
+			cell: ({ row }) => (
+				<Button
+					variant='ghost'
+					size='icon'
+					className='h-8 w-8 p-0'
+					onClick={() =>
+						setExpandedRowId(
+							expandedRowId === row.original.id ? null : row.original.id
+						)
+					}
+				>
+					<ChevronDownIcon
+						className={`h-4 w-4 transition-transform duration-200 ${
+							expandedRowId === row.original.id ? 'rotate-180' : ''
+						}`}
+					/>
+				</Button>
+			),
+			enableSorting: false,
+			enableHiding: false,
+		},
 		{
 			id: 'select',
 			header: ({ table }) => (
@@ -196,10 +254,12 @@ export default function HyperVHostsTable({
 								.map(([key, config]) => (
 									<DropdownMenuItem
 										key={key}
-										onClick={() => {
-											// TODO: Добавить логику изменения статуса
-											console.log('Change status to:', key)
-										}}
+										onClick={() =>
+											handleStatusChange(
+												row.original,
+												key as HyperVHostStatusKey
+											)
+										}
 										disabled={currentStatus === key}
 									>
 										<Badge variant={config.variant} className='w-full'>
@@ -359,6 +419,20 @@ export default function HyperVHostsTable({
 				searchPlaceholder='Поиск по имени хоста или IP'
 				searchable
 				emptyMessage='Хосты не найдены'
+				expandedRowId={expandedRowId}
+				renderExpandedRow={row => (
+					<div className='border-t'>
+						<div className='px-4 py-3 bg-muted/50'>
+							<h3 className='text-sm font-semibold mb-1'>
+								История аудита: {row.original.host_fqdn}
+							</h3>
+							<p className='text-xs text-muted-foreground'>
+								Все действия и изменения для данного хоста
+							</p>
+						</div>
+						<HyperVHostAuditLogs hostId={row.original.id} />
+					</div>
+				)}
 				customActions={
 					<>
 						<div className='flex items-center gap-2 px-3 h-10 border rounded-xl'>

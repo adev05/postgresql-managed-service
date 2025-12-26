@@ -23,9 +23,5 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
 		redirect('/dashboard')
 	}
 
-	return (
-		<AdminContentGuard>
-			<div className='px-4 lg:px-6'>{children}</div>
-		</AdminContentGuard>
-	)
+	return <AdminContentGuard>{children}</AdminContentGuard>
 }

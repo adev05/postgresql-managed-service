@@ -113,3 +113,46 @@ export async function deleteHyperVHost(hostId: number): Promise<void> {
 	// Обновляем страницу со списком хостов
 	revalidatePath('/admin/hyperv-hosts')
 }
+
+export async function updateHyperVHostStatus(
+	hostId: number,
+	statusId: number
+): Promise<HyperVHost> {
+	const session = await auth()
+	const token = session?.access_token
+
+	if (!token) {
+		throw new Error('Unauthorized: no token found')
+	}
+
+	const res = await fetch(
+		`${process.env.API_URL}/admin/hosts/${hostId}/status`,
+		{
+			method: 'PATCH',
+			headers: {
+				Authorization: token,
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ status_id: statusId }),
+		}
+	)
+
+	if (!res.ok) {
+		const text = await res.text()
+		let detail = 'Произошла ошибка при изменении статуса'
+		try {
+			const parsed = JSON.parse(text)
+			detail = parsed.detail || detail
+		} catch {
+			// Если не JSON, используем дефолтное сообщение
+		}
+		throw new Error(detail)
+	}
+
+	const result = await res.json()
+
+	// Обновляем страницу со списком хостов
+	revalidatePath('/admin/hyperv-hosts')
+
+	return result
+}

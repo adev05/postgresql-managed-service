@@ -23,6 +23,7 @@ import {
 import { Slider } from '@/components/ui/slider'
 import { ClusterResponse, CreateClusterPayload } from '@/types/cluster'
 import { createCluster } from '@/actions/cluster'
+import { Plus } from 'lucide-react'
 
 const INITIAL_FORM: CreateClusterPayload = {
 	name: '',
@@ -30,6 +31,7 @@ const INITIAL_FORM: CreateClusterPayload = {
 	cpu: 2,
 	ram_mb: 1024,
 	storage_gb: 10,
+	db_name: '',
 }
 
 const PG_VERSIONS = ['18', '17', '16'] as const
@@ -93,8 +95,9 @@ export default function CreateClusterDialog({
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogTrigger asChild>
-				<Button variant='outline' className='h-full'>
-					Создать кластер
+				<Button variant='outline'>
+					<Plus />
+					<span className='hidden lg:inline'>Создать кластер</span>
 				</Button>
 			</DialogTrigger>
 			<DialogContent className='sm:max-w-[600px]'>
@@ -113,6 +116,20 @@ export default function CreateClusterDialog({
 							onChange={e => updateField('name', e.target.value)}
 							required
 							placeholder='my-cluster'
+							disabled={loading}
+						/>
+					</div>
+
+					<div className='space-y-2'>
+						<Label htmlFor='db_name'>Имя базы данных</Label>
+						<Input
+							id='db_name'
+							value={form.db_name}
+							onChange={e => updateField('db_name', e.target.value)}
+							required
+							minLength={1}
+							maxLength={63}
+							placeholder='mydatabase'
 							disabled={loading}
 						/>
 					</div>

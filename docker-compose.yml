@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_TELEGRAM_BOT_TOKEN=${NEXT_PUBLIC_TELEGRAM_BOT_TOKEN}
+        - NEXT_PUBLIC_TELEGRAM_BOT_ID=${NEXT_PUBLIC_TELEGRAM_BOT_ID}
+        - NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=${NEXT_PUBLIC_TELEGRAM_BOT_USERNAME}
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+        - NEXT_PUBLIC_NODE_ENV=development
+    container_name: ms-frontend
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_NODE_ENV=development
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000/}
+      - API_URL=http://ms-server:8000
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - AUTH_TRUST_HOST=true
+    restart: unless-stopped
+    networks:
+      - managed_service_network
+
+networks:
+  managed_service_network:
+    external: true
+    name: postgresql-managed-service_managed_service_network

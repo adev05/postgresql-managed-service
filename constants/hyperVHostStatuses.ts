@@ -6,3 +6,11 @@ export const HYPERVHOST_STATUS = {
 } as const
 
 export type HyperVHostStatusKey = keyof typeof HYPERVHOST_STATUS
+
+// Маппинг статусов на их ID в базе данных
+export const HYPERVHOST_STATUS_ID_MAP: Record<HyperVHostStatusKey, number> = {
+	ON_SERVICE: 0,
+	IN_USING: 1,
+	DISABLED: 2,
+	DELETED: 3,
+}

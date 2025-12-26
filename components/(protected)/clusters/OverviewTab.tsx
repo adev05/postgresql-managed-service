@@ -26,8 +26,8 @@ const mockResourceUsage = {
 	cpuPercent: 45,
 	memoryPercent: 40,
 	storagePercent: 25,
-	activeConnections: 47,
-	maxConnections: 200,
+	// activeConnections: 47,
+	// maxConnections: 200,
 }
 
 // Данные для графиков (последние 6 точек)
@@ -80,7 +80,11 @@ export default function OverviewTab() {
 	const cluster = currentCluster
 
 	const handleCopyConnection = () => {
-		const connectionString = `postgresql://${mockConnectionDetails.user}:${mockConnectionDetails.password}@${cluster.endpoint}:${cluster.port}/${mockConnectionDetails.database}?sslmode=require`
+		const connectionString = `postgresql://${mockConnectionDetails.user}:${
+			mockConnectionDetails.password
+		}@${cluster.endpoint}:${cluster.port}/${
+			cluster.db_name || 'defaultdb'
+		}?sslmode=require`
 		navigator.clipboard.writeText(connectionString)
 		setCopied(true)
 		setTimeout(() => setCopied(false), 2000)
@@ -120,6 +124,11 @@ export default function OverviewTab() {
 						<p className='text-sm text-muted-foreground'>Название</p>
 						<div className='flex-1 border-b border-dotted border-border'></div>
 						<p className='font-medium'>{cluster.name}</p>
+					</div>
+					<div className='flex items-center justify-between gap-2'>
+						<p className='text-sm text-muted-foreground'>База данных</p>
+						<div className='flex-1 border-b border-dotted border-border'></div>
+						<p className='font-medium'>{cluster.db_name || '-'}</p>
 					</div>
 					<div className='flex items-center justify-between gap-2'>
 						<p className='text-sm text-muted-foreground'>Версия</p>
@@ -170,8 +179,7 @@ export default function OverviewTab() {
 						<div className='flex items-center justify-between mb-2'>
 							<p className='text-sm font-medium'>RAM</p>
 							<p className='text-sm text-muted-foreground'>
-								{usedMemoryGB.toFixed(1)} / {(cluster.ram_mb / 1024).toFixed(1)}{' '}
-								GB
+								{usedMemoryGB.toFixed(1)} / {cluster.ram_mb.toFixed(0)} GB
 							</p>
 						</div>
 						<div className='w-full bg-secondary rounded-full h-2'>
@@ -197,7 +205,7 @@ export default function OverviewTab() {
 						</div>
 					</div>
 
-					<div>
+					{/* <div>
 						<div className='flex items-center justify-between mb-2'>
 							<p className='text-sm font-medium'>Подключения</p>
 							<p className='text-sm text-muted-foreground'>
@@ -217,7 +225,7 @@ export default function OverviewTab() {
 								}}
 							/>
 						</div>
-					</div>
+					</div> */}
 				</CardContent>
 			</Card>
 
@@ -233,18 +241,28 @@ export default function OverviewTab() {
 				<CardContent className='flex flex-col gap-4'>
 					<div className='flex flex-col gap-2'>
 						<Label htmlFor='host'>Host</Label>
-						<Input id='host' type='text' value={cluster.endpoint} readOnly />
+						<Input
+							id='host'
+							type='text'
+							value={cluster.endpoint || ''}
+							readOnly
+						/>
 					</div>
 					<div className='flex flex-col gap-2'>
 						<Label htmlFor='port'>Port</Label>
-						<Input id='port' type='text' value={cluster.port} readOnly />
+						<Input
+							id='port'
+							type='text'
+							value={cluster.port?.toString() || ''}
+							readOnly
+						/>
 					</div>
 					<div className='flex flex-col gap-2'>
 						<Label htmlFor='database'>Database</Label>
 						<Input
 							id='database'
 							type='text'
-							value={mockConnectionDetails.database}
+							value={cluster.db_name || ''}
 							readOnly
 						/>
 					</div>
@@ -284,12 +302,12 @@ export default function OverviewTab() {
 					>
 						{copied ? (
 							<>
-								<CheckCircle2 className='w-4 h-4 mr-2' />
+								<CheckCircle2 className='w-4 h-4' />
 								Скопировано!
 							</>
 						) : (
 							<>
-								<Copy className='w-4 h-4 mr-2' />
+								<Copy className='w-4 h-4' />
 								Скопировать connection string
 							</>
 						)}

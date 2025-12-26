@@ -1,3 +1,14 @@
+export default function AdminSupportPage() {
+	return (
+		<div className='flex items-center justify-center h-full'>
+			<div className='text-center'>
+				<h1 className='text-2xl font-bold mb-2'>Support Tickets</h1>
+				<p className='text-muted-foreground'>Coming soon...</p>
+			</div>
+		</div>
+	)
+}
+
 // 'use client'
 
 // import React from 'react'

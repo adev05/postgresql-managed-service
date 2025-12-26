@@ -30,6 +30,8 @@ const INITIAL_FORM: CreateHyperVHostPayload = {
 	total_ram: 32768,
 	total_cpu: 16,
 	disks_path: 'C:\\Hyper-V',
+	username: '',
+	password: '',
 }
 
 interface CreateHyperVHostDialogProps {
@@ -105,6 +107,35 @@ export default function CreateHyperVHostDialog({
 							placeholder='192.168.1.100 или hyperv-host.example.com'
 							disabled={loading}
 						/>
+					</div>
+
+					<div className='grid grid-cols-2 gap-4'>
+						<div className='space-y-2'>
+							<Label htmlFor='username'>Имя пользователя *</Label>
+							<Input
+								id='username'
+								value={form.username}
+								onChange={e => updateField('username', e.target.value)}
+								required
+								placeholder='administrator'
+								disabled={loading}
+								autoComplete='username'
+							/>
+						</div>
+
+						<div className='space-y-2'>
+							<Label htmlFor='password'>Пароль *</Label>
+							<Input
+								id='password'
+								type='password'
+								value={form.password}
+								onChange={e => updateField('password', e.target.value)}
+								required
+								placeholder='••••••••'
+								disabled={loading}
+								autoComplete='current-password'
+							/>
+						</div>
 					</div>
 
 					<div className='space-y-2'>

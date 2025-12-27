@@ -99,7 +99,7 @@ export default function HyperVHostAuditLogs({
 	}
 
 	return (
-		<ScrollArea className='h-[400px] w-full'>
+		<ScrollArea className='h-[410px] w-full'>
 			<div className='space-y-3 p-4'>
 				{logs.map(log => (
 					<Card

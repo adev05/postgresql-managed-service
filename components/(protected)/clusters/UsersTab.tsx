@@ -25,102 +25,123 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
-import { UserPlus, MoreVertical, Shield, Trash2, Cable } from 'lucide-react'
-import { useState } from 'react'
-
-// Моканные данные пользователей
-const mockUsers = [
-	{
-		id: '1',
-		username: 'postgres',
-		role: 'superuser',
-		canLogin: true,
-		canCreateDB: true,
-		canCreateRole: true,
-		connections: 12,
-		validUntil: null,
-		createdAt: '2024-11-15T10:00:00Z',
-	},
-	{
-		id: '2',
-		username: 'admin',
-		role: 'admin',
-		canLogin: true,
-		canCreateDB: true,
-		canCreateRole: false,
-		connections: 8,
-		validUntil: null,
-		createdAt: '2024-11-16T11:20:00Z',
-	},
-	{
-		id: '3',
-		username: 'app_user',
-		role: 'user',
-		canLogin: true,
-		canCreateDB: false,
-		canCreateRole: false,
-		connections: 23,
-		validUntil: '2025-12-31',
-		createdAt: '2024-11-18T14:30:00Z',
-	},
-	{
-		id: '4',
-		username: 'readonly_user',
-		role: 'readonly',
-		canLogin: true,
-		canCreateDB: false,
-		canCreateRole: false,
-		connections: 5,
-		validUntil: null,
-		createdAt: '2024-11-20T09:15:00Z',
-	},
-]
+import { MoreVertical, Trash2, Users, Database } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useClusterStore } from '@/stores/cluster-store'
+import { ClusterUser } from '@/types/cluster-user'
+import { fetchClusterUsers } from '@/lib/actions/cluster-users'
+import CreateClusterUserDialog from '../admin/cluster-users/CreateClusterUserDialog'
+import { deleteClusterUser } from '@/actions/cluster-user'
+import { formatDistanceToNow } from 'date-fns'
+import { ru } from 'date-fns/locale'
+import { Spinner } from '@/components/ui/spinner'
 
 export default function UsersTab() {
-	const [users] = useState(mockUsers)
+	const currentCluster = useClusterStore(state => state.currentCluster)
+	const [users, setUsers] = useState<ClusterUser[]>([])
+	const [loading, setLoading] = useState(true)
+	const [error, setError] = useState<string | null>(null)
+
+	const loadUsers = async () => {
+		if (!currentCluster) return
+
+		setLoading(true)
+		setError(null)
+		try {
+			const result = await fetchClusterUsers(currentCluster.id, 100, 0)
+			setUsers(result.cluster_users)
+		} catch (err) {
+			setError(
+				err instanceof Error ? err.message : 'Ошибка загрузки пользователей'
+			)
+		} finally {
+			setLoading(false)
+		}
+	}
+
+	useEffect(() => {
+		loadUsers()
+	}, [currentCluster])
+
+	const handleUserCreated = () => {
+		loadUsers()
+	}
+
+	const handleDeleteClick = async (user: ClusterUser) => {
+		if (!currentCluster) return
+		if (user.status.status === 'DELETED') return
+
+		if (
+			!confirm(
+				`Вы уверены, что хотите удалить пользователя "${user.username}"?`
+			)
+		) {
+			return
+		}
+
+		try {
+			await deleteClusterUser(currentCluster.id, user.id)
+			await loadUsers()
+		} catch (error) {
+			console.error('Error deleting user:', error)
+			alert(
+				error instanceof Error
+					? error.message
+					: 'Ошибка при удалении пользователя'
+			)
+		}
+	}
+
+	if (!currentCluster) {
+		return (
+			<div className='flex items-center justify-center h-64'>
+				<p className='text-muted-foreground'>Кластер не найден</p>
+			</div>
+		)
+	}
+
+	if (loading) {
+		return (
+			<div className='flex items-center justify-center h-64'>
+				<Spinner />
+			</div>
+		)
+	}
+
+	if (error) {
+		return (
+			<div className='flex items-center justify-center h-64'>
+				<div className='text-center'>
+					<p className='text-destructive mb-2'>Ошибка загрузки пользователей</p>
+					<p className='text-sm text-muted-foreground'>{error}</p>
+					<Button onClick={loadUsers} className='mt-4'>
+						Попробовать снова
+					</Button>
+				</div>
+			</div>
+		)
+	}
 
 	const formatDate = (dateString: string) => {
-		return new Date(dateString).toLocaleDateString('ru-RU', {
-			day: '2-digit',
-			month: '2-digit',
-			year: 'numeric',
-		})
-	}
-
-	const getRoleBadgeVariant = (role: string) => {
-		switch (role) {
-			case 'superuser':
-				return 'destructive'
-			case 'admin':
-				return 'default'
-			case 'user':
-				return 'secondary'
-			case 'readonly':
-				return 'outline'
-			default:
-				return 'secondary'
+		try {
+			return formatDistanceToNow(new Date(dateString), {
+				addSuffix: true,
+				locale: ru,
+			})
+		} catch {
+			return '-'
 		}
-	}
-
-	const getRoleLabel = (role: string) => {
-		const labels: Record<string, string> = {
-			superuser: 'Суперпользователь',
-			admin: 'Администратор',
-			user: 'Пользователь',
-			readonly: 'Только чтение',
-		}
-		return labels[role] || role
 	}
 
 	return (
 		<div className='space-y-4'>
 			{/* Статистика */}
-			<div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
+			<div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
 				<Card>
 					<CardHeader>
 						<CardTitle>Всего пользователей</CardTitle>
 						<CardAction>
-							<Shield className='h-4 w-4 text-muted-foreground' />
+							<Users className='h-4 w-4 text-muted-foreground' />
 						</CardAction>
 					</CardHeader>
 					<CardContent>
@@ -130,42 +151,28 @@ export default function UsersTab() {
 
 				<Card>
 					<CardHeader>
-						<CardTitle>Суперпользователи</CardTitle>
+						<CardTitle>Активных</CardTitle>
 						<CardAction>
-							<Shield className='h-4 w-4 text-destructive' />
+							<Database className='h-4 w-4 text-green-500' />
 						</CardAction>
 					</CardHeader>
 					<CardContent>
 						<div className='text-2xl font-bold'>
-							{users.filter(u => u.role === 'superuser').length}
+							{users.filter(u => u.status.status !== 'DELETED').length}
 						</div>
 					</CardContent>
 				</Card>
 
 				<Card>
 					<CardHeader>
-						<CardTitle>Администраторы</CardTitle>
+						<CardTitle>Удаленных</CardTitle>
 						<CardAction>
-							<Shield className='h-4 w-4 text-primary' />
+							<Trash2 className='h-4 w-4 text-destructive' />
 						</CardAction>
 					</CardHeader>
 					<CardContent>
 						<div className='text-2xl font-bold'>
-							{users.filter(u => u.role === 'admin').length}
-						</div>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader>
-						<CardTitle>Активных подключений</CardTitle>
-						<CardAction>
-							<Cable className='h-4 w-4 text-muted-foreground' />
-						</CardAction>
-					</CardHeader>
-					<CardContent>
-						<div className='text-2xl font-bold'>
-							{users.reduce((sum, u) => sum + u.connections, 0)}
+							{users.filter(u => u.status.status === 'DELETED').length}
 						</div>
 					</CardContent>
 				</Card>
@@ -179,83 +186,92 @@ export default function UsersTab() {
 						Управление пользователями и их правами доступа
 					</CardDescription>
 					<CardAction>
-						<Button>
-							<UserPlus className='w-4 h-4' />
-							Создать пользователя
-						</Button>
+						<CreateClusterUserDialog
+							clusterId={currentCluster.id}
+							onUserCreated={handleUserCreated}
+						/>
 					</CardAction>
 				</CardHeader>
 				<CardContent>
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Имя пользователя</TableHead>
-								<TableHead>Роль</TableHead>
-								<TableHead>Права</TableHead>
-								<TableHead>Подключения</TableHead>
-								<TableHead>Действителен до</TableHead>
-								<TableHead>Создан</TableHead>
-								<TableHead className='w-[50px]'></TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{users.map(user => (
-								<TableRow key={user.id}>
-									<TableCell className='font-medium'>{user.username}</TableCell>
-									<TableCell>
-										<Badge variant={getRoleBadgeVariant(user.role)}>
-											{getRoleLabel(user.role)}
-										</Badge>
-									</TableCell>
-									<TableCell>
-										<div className='flex gap-1 flex-wrap'>
-											{user.canLogin && (
-												<Badge variant='outline' className='text-xs'>
-													Login
-												</Badge>
-											)}
-											{user.canCreateDB && (
-												<Badge variant='outline' className='text-xs'>
-													Create DB
-												</Badge>
-											)}
-											{user.canCreateRole && (
-												<Badge variant='outline' className='text-xs'>
-													Create Role
-												</Badge>
-											)}
-										</div>
-									</TableCell>
-									<TableCell>{user.connections}</TableCell>
-									<TableCell className='text-muted-foreground'>
-										{user.validUntil ? formatDate(user.validUntil) : '∞'}
-									</TableCell>
-									<TableCell className='text-muted-foreground'>
-										{formatDate(user.createdAt)}
-									</TableCell>
-									<TableCell>
-										<DropdownMenu>
-											<DropdownMenuTrigger asChild>
-												<Button variant='ghost' size='icon'>
-													<MoreVertical className='w-4 h-4' />
-												</Button>
-											</DropdownMenuTrigger>
-											<DropdownMenuContent align='end'>
-												<DropdownMenuItem>Изменить пароль</DropdownMenuItem>
-												<DropdownMenuItem>Управление правами</DropdownMenuItem>
-												<DropdownMenuItem>Настройки</DropdownMenuItem>
-												<DropdownMenuSeparator />
-												<DropdownMenuItem className='text-destructive'>
-													<Trash2 className='w-4 h-4 mr-2' />
-													Удалить
-												</DropdownMenuItem>
-											</DropdownMenuContent>
-										</DropdownMenu>
-									</TableCell>
+					{users.length === 0 ? (
+						<div className='text-center py-8 text-muted-foreground'>
+							Пользователи не найдены
+						</div>
+					) : (
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>Имя пользователя</TableHead>
+									<TableHead>Разрешения</TableHead>
+									<TableHead>Статус</TableHead>
+									<TableHead>Создан</TableHead>
+									<TableHead>Обновлен</TableHead>
+									<TableHead className='w-[50px]'></TableHead>
 								</TableRow>
-							))}
-						</TableBody>
-					</Table>
+							</TableHeader>
+							<TableBody>
+								{users.map(user => {
+									const isDeleted = user.status.status === 'DELETED'
+									const permissions = user.permissions.split(',')
+
+									return (
+										<TableRow key={user.id}>
+											<TableCell className='font-medium font-mono'>
+												{user.username}
+											</TableCell>
+											<TableCell>
+												<div className='flex gap-1 flex-wrap'>
+													{permissions.map(perm => (
+														<Badge
+															key={perm}
+															variant='outline'
+															className='text-xs'
+														>
+															{perm}
+														</Badge>
+													))}
+												</div>
+											</TableCell>
+											<TableCell>
+												<Badge variant={isDeleted ? 'destructive' : 'default'}>
+													{user.status.status}
+												</Badge>
+											</TableCell>
+											<TableCell className='text-muted-foreground text-sm'>
+												{formatDate(user.created_at)}
+											</TableCell>
+											<TableCell className='text-muted-foreground text-sm'>
+												{formatDate(user.updated_at)}
+											</TableCell>
+											<TableCell>
+												<DropdownMenu>
+													<DropdownMenuTrigger asChild>
+														<Button
+															variant='ghost'
+															size='icon'
+															disabled={isDeleted}
+														>
+															<MoreVertical className='w-4 h-4' />
+														</Button>
+													</DropdownMenuTrigger>
+													<DropdownMenuContent align='end'>
+														<DropdownMenuItem
+															className='text-destructive'
+															onClick={() => handleDeleteClick(user)}
+															disabled={isDeleted}
+														>
+															<Trash2 className='w-4 h-4 mr-2' />
+															Удалить
+														</DropdownMenuItem>
+													</DropdownMenuContent>
+												</DropdownMenu>
+											</TableCell>
+										</TableRow>
+									)
+								})}
+							</TableBody>
+						</Table>
+					)}
 				</CardContent>
 			</Card>
 		</div>

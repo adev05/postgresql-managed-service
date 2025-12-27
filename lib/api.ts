@@ -1,5 +1,6 @@
 import type { Cluster } from '@/types/cluster'
 import { HyperVHost, HyperVHostAuditLog } from '@/types/hyperv-host'
+import { ClusterUser } from '@/types/cluster-user'
 
 const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL
 
@@ -164,5 +165,39 @@ export async function getHyperVHostAuditLogs(
 	} catch (error) {
 		console.error(`Error fetching audit logs for host ${hostId}:`, error)
 		return []
+	}
+}
+
+interface GetClusterUsersParams {
+	limit?: number
+	offset?: number
+}
+
+export async function getClusterUsers(
+	token: string,
+	clusterId: string,
+	params?: GetClusterUsersParams
+): Promise<{ cluster_users: ClusterUser[]; total: number }> {
+	if (!token) {
+		return { cluster_users: [], total: 0 }
+	}
+
+	const { limit = 10, offset = 0 } = params || {}
+	const queryParams = new URLSearchParams({
+		limit: limit.toString(),
+		offset: offset.toString(),
+	})
+
+	try {
+		return await apiFetch<{ cluster_users: ClusterUser[]; total: number }>(
+			`/clusters/${clusterId}/users?${queryParams}`,
+			token,
+			{
+				next: { revalidate: 0 },
+			}
+		)
+	} catch (error) {
+		console.error('Error fetching cluster users:', error)
+		return { cluster_users: [], total: 0 }
 	}
 }
